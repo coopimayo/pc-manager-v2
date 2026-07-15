@@ -6,6 +6,8 @@ import styles from "./CharacterEditorPage.module.css";
 
 interface Props {
   character: Character | undefined;
+  /** The store is still hydrating, so a missing character isn't yet "not found". */
+  loading: boolean;
 }
 
 /**
@@ -14,7 +16,7 @@ interface Props {
  * its build log, which doubles as a smoke test that the web app is correctly
  * wired to @pc-manager/engine and @pc-manager/content-srd.
  */
-export function CharacterEditorPage({ character }: Props): React.JSX.Element {
+export function CharacterEditorPage({ character, loading }: Props): React.JSX.Element {
   const result = useMemo(() => {
     if (!character) return undefined;
     return derive([srdPack], character.buildLog);
@@ -26,7 +28,7 @@ export function CharacterEditorPage({ character }: Props): React.JSX.Element {
         <a className={styles.back} href="#/">
           ← Back to characters
         </a>
-        <p className={styles.missing}>Character not found.</p>
+        <p className={styles.missing}>{loading ? "Loading…" : "Character not found."}</p>
       </section>
     );
   }

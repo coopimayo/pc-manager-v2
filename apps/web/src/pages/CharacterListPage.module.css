@@ -41,6 +41,14 @@
   color: var(--muted);
 }
 
+.error {
+  padding: 0.6rem 0.85rem;
+  color: var(--danger);
+  background: var(--surface);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+}
+
 .list {
   list-style: none;
   margin: 0;
@@ -63,6 +71,19 @@
 .link {
   font-weight: 600;
   text-decoration: none;
+}
+
+.actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.action {
+  padding: 0.35rem 0.7rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
 }
 
 .delete {

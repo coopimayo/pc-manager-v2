@@ -1,28 +1,39 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import styles from "./App.module.css";
-import { type Character, createCharacter } from "./character";
 import { navigate, useRoute } from "./router";
+import { characterStore } from "./store/characterStore";
+import { useCharacterStore } from "./store/useCharacterStore";
 import { CharacterEditorPage } from "./pages/CharacterEditorPage";
 import { CharacterListPage } from "./pages/CharacterListPage";
 
 /**
- * App shell: owns the (placeholder, in-memory) character collection and swaps
- * between the two routes. The collection lives here rather than in a page so it
- * survives list ⇄ editor navigation; step 2.2 lifts it into an IndexedDB store.
+ * App shell: swaps between the two routes over the persistent character store.
+ * The store (not React state) owns the collection, so it survives reloads and
+ * list ⇄ editor navigation; every handler here just calls the store's mutation
+ * API, which autosaves to IndexedDB.
  */
 export function App(): React.JSX.Element {
   const route = useRoute();
-  const [characters, setCharacters] = useState<Character[]>([]);
+  const { status, characters } = useCharacterStore();
 
-  const handleCreate = useCallback((name: string) => {
-    const character = createCharacter(name);
-    setCharacters((prev) => [...prev, character]);
+  const handleCreate = useCallback(async (name: string) => {
+    const character = await characterStore.create(name);
     navigate({ name: "editor", characterId: character.id });
   }, []);
 
   const handleDelete = useCallback((id: string) => {
-    setCharacters((prev) => prev.filter((c) => c.id !== id));
+    void characterStore.remove(id);
   }, []);
+
+  const handleRename = useCallback((id: string, name: string) => {
+    void characterStore.rename(id, name);
+  }, []);
+
+  const handleDuplicate = useCallback((id: string) => {
+    void characterStore.duplicate(id);
+  }, []);
+
+  const handleImport = useCallback((json: string) => characterStore.importFile(json), []);
 
   return (
     <div className={styles.app}>
@@ -37,12 +48,17 @@ export function App(): React.JSX.Element {
         {route.name === "list" ? (
           <CharacterListPage
             characters={characters}
+            loading={status === "loading"}
             onCreate={handleCreate}
             onDelete={handleDelete}
+            onRename={handleRename}
+            onDuplicate={handleDuplicate}
+            onImport={handleImport}
           />
         ) : (
           <CharacterEditorPage
             character={characters.find((c) => c.id === route.characterId)}
+            loading={status === "loading"}
           />
         )}
       </main>

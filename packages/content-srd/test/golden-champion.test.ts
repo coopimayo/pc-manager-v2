@@ -20,6 +20,7 @@ const creationEvents: BuildEvent[] = [
   { type: "decisionResolved", decisionId: "background", optionIds: ["soldier"] },
   // Soldier: +2 STR (17), +1 CON (15)
   { type: "decisionResolved", decisionId: "soldier:abilities", optionIds: ["str", "str", "con"] },
+  { type: "decisionResolved", decisionId: "languages", optionIds: ["dwarvish", "giant"] },
   { type: "classLevelTaken", classId: "fighter" },
   { type: "decisionResolved", decisionId: "fighter:skills", optionIds: ["acrobatics", "survival"] },
   { type: "decisionResolved", decisionId: "fighter:fighting-style:choice", optionIds: ["fs-defense"] },
@@ -39,6 +40,13 @@ describe("golden: level 5 Human Champion Fighter", () => {
   it("is a complete, legal build", () => {
     expect(findings).toEqual([]);
     expect(pendingDecisions).toEqual([]);
+  });
+
+  it("knows Common plus the two chosen languages", () => {
+    const languages = sheet.proficiencies
+      .filter((p) => p.proficiency.type === "language")
+      .map((p) => p.proficiency.id);
+    expect(languages).toEqual(["common", "dwarvish", "giant"]);
   });
 
   it("has the right identity and level", () => {

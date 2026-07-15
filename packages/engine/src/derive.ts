@@ -12,6 +12,7 @@ import { Registry } from "./registry.js";
 import {
   ABILITIES,
   SKILLS,
+  STANDARD_LANGUAGES,
   type Ability,
   type BuildEvent,
   type CharacterSheet,
@@ -242,6 +243,33 @@ function foldCharacterCreated(
       prompt: "Choose your background",
       count: 1,
       options: { source: "query", entityType: "background" },
+    },
+    "Character creation",
+  );
+  // 2024 rules: every character knows Common plus two standard languages.
+  applyEffect(
+    state,
+    { kind: "grantProficiency", proficiency: { type: "language", id: "common" } },
+    "Character creation",
+  );
+  grantDecision(
+    state,
+    {
+      id: "languages",
+      prompt: "Choose two languages",
+      count: 2,
+      options: {
+        source: "list",
+        options: Object.entries(STANDARD_LANGUAGES)
+          .filter(([id]) => id !== "common")
+          .map(([id, name]) => ({
+            id,
+            label: name,
+            effects: [
+              { kind: "grantProficiency" as const, proficiency: { type: "language" as const, id } },
+            ],
+          })),
+      },
     },
     "Character creation",
   );

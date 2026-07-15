@@ -45,6 +45,21 @@ export const SKILLS: Record<string, Ability> = {
   survival: "wis",
 };
 
+/** Core-rules standard languages (2024): language id → display name. Every
+ * character knows Common and chooses two more at creation. */
+export const STANDARD_LANGUAGES: Record<string, string> = {
+  common: "Common",
+  "common-sign-language": "Common Sign Language",
+  draconic: "Draconic",
+  dwarvish: "Dwarvish",
+  elvish: "Elvish",
+  giant: "Giant",
+  gnomish: "Gnomish",
+  goblin: "Goblin",
+  halfling: "Halfling",
+  orc: "Orc",
+};
+
 // ---------------------------------------------------------------------------
 // Proficiencies
 // ---------------------------------------------------------------------------

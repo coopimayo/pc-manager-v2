@@ -188,12 +188,18 @@ const findingCodes = (r: DeriveResult) => r.findings.map((f) => f.code);
 const pendingIds = (r: DeriveResult) => r.pendingDecisions.map((p) => p.instanceId);
 
 describe("derive: creation basics", () => {
-  it("characterCreated opens species and background decisions with query options", () => {
+  it("characterCreated opens species, background, and language decisions", () => {
     const r = run(created);
-    expect(pendingIds(r)).toEqual(["species", "background"]);
+    expect(pendingIds(r)).toEqual(["species", "background", "languages"]);
     const species = r.pendingDecisions[0]!;
     expect(species.options.map((o) => o.id)).toEqual(["otherkin", "testkin"]);
     expect(species.options.every((o) => o.eligible)).toBe(true);
+    // 2024 rules: Common is known from the start; two more are a choice.
+    const languages = r.sheet.proficiencies.filter((p) => p.proficiency.type === "language");
+    expect(languages.map((p) => p.proficiency.id)).toEqual(["common"]);
+    const languageDecision = r.pendingDecisions[2]!;
+    expect(languageDecision.decision.count).toBe(2);
+    expect(languageDecision.options.map((o) => o.id)).not.toContain("common");
     expect(r.sheet.level).toBe(0);
     expect(r.sheet.stats["speed"]?.value).toBe(30);
     expect(r.sheet.attributions).toEqual(["Test attribution"]);

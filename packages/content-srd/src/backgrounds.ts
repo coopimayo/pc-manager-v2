@@ -29,6 +29,9 @@ function background(
       prof("skill", skills[0]),
       prof("skill", skills[1]),
       prof("tool", tool),
+      // TODO(M4): backgrounds grant a *specific* Magic Initiate list (Acolyte →
+      // Cleric, Sage → Wizard), but grantFeat can't yet pre-resolve the feat's
+      // spell-list decision, so the player currently picks the list freely.
       { kind: "grantFeat", featId },
     ],
   };

@@ -4,7 +4,7 @@
  * for every pack in the repo.
  */
 import { z } from "zod";
-import type { DecisionPoint, Effect, Predicate } from "./types.js";
+import type { BuildEvent, DecisionPoint, Effect, Predicate } from "./types.js";
 
 export const abilitySchema = z.enum(["str", "dex", "con", "int", "wis", "cha"]);
 
@@ -126,6 +126,49 @@ export const entitySchema = z.discriminatedUnion("type", [
   }),
   z.object({ ...entityBase, type: z.literal("background"), effects: z.array(effectSchema) }),
 ]);
+
+// ---------------------------------------------------------------------------
+// Build log — a character *is* its build log; import validates against this.
+// ---------------------------------------------------------------------------
+
+export const abilityScoresSchema = z.object({
+  str: z.number().int(),
+  dex: z.number().int(),
+  con: z.number().int(),
+  int: z.number().int(),
+  wis: z.number().int(),
+  cha: z.number().int(),
+});
+
+export const buildEventSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("characterCreated"),
+    name: z.string().min(1),
+    packIds: z.array(z.string().min(1)),
+  }),
+  z.object({
+    type: z.literal("abilityScoresSet"),
+    method: z.enum(["standardArray", "pointBuy", "manual"]),
+    scores: abilityScoresSchema,
+  }),
+  z.object({
+    type: z.literal("classLevelTaken"),
+    classId: z.string().min(1),
+    hpRoll: z.number().int().min(1).optional(),
+  }),
+  z.object({
+    type: z.literal("decisionResolved"),
+    decisionId: z.string().min(1),
+    optionIds: z.array(z.string().min(1)),
+  }),
+]);
+
+// Compile-time guarantee the schema stays in lockstep with the BuildEvent union:
+// if either drifts, one of these assignments fails to type-check.
+const _buildEventOut: BuildEvent = {} as z.infer<typeof buildEventSchema>;
+const _buildEventIn: z.infer<typeof buildEventSchema> = {} as BuildEvent;
+void _buildEventOut;
+void _buildEventIn;
 
 export const contentPackSchema = z.object({
   id: z.string().min(1),

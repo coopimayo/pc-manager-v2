@@ -9,4 +9,6 @@ export {
   effectSchema,
   decisionPointSchema,
   predicateSchema,
+  buildEventSchema,
+  abilityScoresSchema,
 } from "./schemas.js";

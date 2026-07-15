@@ -59,6 +59,13 @@ export function App(): React.JSX.Element {
           <CharacterEditorPage
             character={characters.find((c) => c.id === route.characterId)}
             loading={status === "loading"}
+            onResolveDecision={(instanceId, optionIds) =>
+              void characterStore.appendEvent(route.characterId, {
+                type: "decisionResolved",
+                decisionId: instanceId,
+                optionIds,
+              })
+            }
           />
         )}
       </main>

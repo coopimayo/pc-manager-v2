@@ -1,5 +1,6 @@
 export type { Armor } from './armor';
 export type { ArtisanTools } from './artisan-tools';
+export type { AttackType } from './attack-type';
 export type { CoinUnit } from './coin-unit';
 export type { Cost } from './cost';
 export type { Damage } from './damage';

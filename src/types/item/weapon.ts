@@ -1,3 +1,4 @@
+import type { AttackType } from './attack-type';
 import type { Damage } from './damage';
 import type { Item } from './item';
 import type { WeaponCategory } from './weapon-category';
@@ -6,7 +7,7 @@ import type { WeaponProperty } from './weapon-property';
 
 export interface Weapon extends Item {
   category: WeaponCategory;
-  attackType: 'melee' | 'ranged';
+  attackType: AttackType;
   damage: Damage;
   properties: WeaponProperty[];
   mastery: WeaponMastery;

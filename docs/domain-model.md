@@ -165,7 +165,8 @@ type Effect =
   | { kind: 'abilityScoreIncrease'; ability: Ability; amount: number }
   | { kind: 'grantSpells'; spellIds: string[]; castingAbility: Ability }
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
-  | { kind: 'grantProficiency'; skill: Skill };
+  | { kind: 'grantProficiency'; skill: Skill }
+  | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };
 ```
 
 `grantAbility` covers anything the character can *do*. Rather than a separate

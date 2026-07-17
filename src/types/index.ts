@@ -1,4 +1,4 @@
-export type { Ability, Size, Skill, Die, Choice } from './common';
+export type { Ability, Size, Skill, Die, Choice, LevelScaled } from './common';
 export type { Character, CharacterClass } from './character';
 export type { Background } from './background';
 export type { Feat } from './feat';

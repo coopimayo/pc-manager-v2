@@ -11,4 +11,5 @@ export interface Character {
   abilityScores: Record<Ability, number>;
   skillProficiencies: Skill[];
   featIds: string[];
+  weaponIds: string[];
 }

@@ -9,4 +9,5 @@ export const exampleFighter: Character = {
   abilityScores: { str: 16, dex: 13, con: 15, int: 10, wis: 12, cha: 8 },
   skillProficiencies: ['athletics', 'intimidation'],
   featIds: [],
+  weaponIds: ['greatsword', 'javelin'],
 };

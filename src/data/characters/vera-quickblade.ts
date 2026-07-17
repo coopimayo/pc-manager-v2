@@ -8,5 +8,6 @@ export const veraQuickblade: Character = {
   classes: [{ classId: 'fighter', level: 3 }],
   abilityScores: { str: 10, dex: 17, con: 14, int: 12, wis: 13, cha: 8 },
   skillProficiencies: ['acrobatics', 'stealth'],
-  featIds: [],
+  featIds: ['archery'],
+  weaponIds: ['longbow', 'shortsword'],
 };

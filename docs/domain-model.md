@@ -55,6 +55,7 @@ interface Character {
   abilityScores: Record<Ability, number>;
   skillProficiencies: Skill[];          // the skills actually chosen
   featIds: string[];
+  weaponIds: string[];                  // → Weapon, the weapons carried
 }
 ```
 
@@ -307,7 +308,8 @@ Known gaps, roughly in priority order for making the app a functional creator:
   references spell ids that don't resolve to anything.
 - **Languages** and **conditions** — no types yet.
 - **Character detail** — ability-score *bonuses* (the background +2/+1
-  allocation), hit points, and inventory/equipped items are not on `Character`.
+  allocation) and hit points are not on `Character`. Inventory is only
+  `weaponIds` so far; armour, equipped state and quantities are unmodelled.
 - **The creator UI** — the React app is still the scaffold.
 
 ### Small fixes

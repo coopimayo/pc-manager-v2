@@ -4,6 +4,10 @@
   padding: 4rem 1.5rem;
 }
 
+.header {
+  margin-bottom: 2.5rem;
+}
+
 .title {
   margin: 0 0 0.5rem;
   font-size: 2rem;
@@ -16,9 +20,172 @@
   line-height: 1.6;
 }
 
-.subtitle code {
-  padding: 0.1em 0.35em;
-  border-radius: 4px;
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-radius: 8px;
   background: var(--color-surface);
-  font-size: 0.9em;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.abilities {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ability {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.abilityName {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.abilityScore {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.abilityModifier {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.skills {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: 2;
+  column-gap: 1.5rem;
+}
+
+.skill,
+.skillProficient {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  break-inside: avoid;
+}
+
+.skill span:first-child,
+.skillProficient span:first-child {
+  flex: 1;
+}
+
+.skillProficient span:first-child {
+  font-weight: 600;
+}
+
+.skillProficient span:first-child::before {
+  content: '•';
+  margin-right: 0.4rem;
+}
+
+.skill span:first-child::before {
+  content: '◦';
+  margin-right: 0.4rem;
+  color: var(--color-text-muted);
+}
+
+.skillAbility {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-bg);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.cardBody {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.cardMeta {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  opacity: 0.85;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-muted);
 }

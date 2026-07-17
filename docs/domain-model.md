@@ -22,7 +22,7 @@ data: interfaces and string-literal unions, no behaviour.
    and the like are computed from a character plus its content. (That
    derivation layer is not built yet — see [Not yet modelled](#not-yet-modelled).)
 
-## Shared primitives — [`common.ts`](../src/types/common.ts)
+## Shared primitives — [`common/`](../src/types/common)
 
 ```ts
 Choice<T>    // { choose: number; from: T[] }  — "choose N from a list"
@@ -33,7 +33,7 @@ DamageType   // 'acid' | 'bludgeoning' | … | 'thunder'  (13 types)
 Skill        // 'acrobatics' | 'animal-handling' | … | 'survival'  (18 skills)
 ```
 
-## Character instance — [`character.ts`](../src/types/character.ts)
+## Character instance — [`character/`](../src/types/character)
 
 The thing being created. All content is referenced by id; the `classes` array is
 what models multiclassing.
@@ -168,7 +168,7 @@ type Effect =
   | { kind: 'grantProficiency'; skill: Skill };
 ```
 
-### Items — [`item.ts`](../src/types/item.ts)
+### Items — [`item/`](../src/types/item)
 
 `Item` is the base (cost + weight); `Weapon`, `Armor` and `ArtisanTools` extend
 it. An `EquipmentPackage` is a bundle used as the `T` in a
@@ -194,7 +194,7 @@ interface EquipmentPackage {
 interface Damage { count: number; die: Die; type: DamageType; }  // e.g. 1d8 slashing
 
 interface Weapon extends Item {
-  category: 'simple' | 'martial';
+  category: WeaponCategory;             // 'simple' | 'martial'
   attackType: 'melee' | 'ranged';
   damage: Damage;
   properties: WeaponProperty[];         // 'finesse' | 'thrown' | 'versatile' | …
@@ -249,19 +249,27 @@ graph TD
 
 ## Importing
 
-Types live under `src/types/`, grouped into `class/` and `species/` folders.
-Each folder has a barrel, and `src/types/index.ts` re-exports the commonly used
-types:
+Types live under `src/types/`, **one type per file**. Related types are grouped
+into folders — `common/`, `character/`, `item/`, `class/`, `species/` — each with
+a barrel `index.ts`; the single-type entities (`background.ts`, `feat.ts`,
+`effect.ts`) sit at the top level. `src/types/index.ts` re-exports the commonly
+used types:
 
 ```ts
 import type { Character, Feat, Effect, Choice } from '../types';
 import type { Class, Subclass } from '../types/class';
 import type { Species, Trait } from '../types/species';
+import type { Weapon, Armor } from '../types/item';
 ```
 
-> The top-level barrel currently surfaces a curated subset; `class/` and
-> `species/` types are imported from their folder barrels. Reconciling the
-> top-level barrel to re-export everything is a possible cleanup.
+Import from a folder barrel rather than reaching into its files, so
+`../types/item` — not `../types/item/weapon`. Within a folder, files import their
+siblings directly (`./weapon-category`) and cross folders via the other barrel
+(`../common`).
+
+> The top-level barrel currently surfaces a curated subset; the folder types are
+> imported from their folder barrels. Reconciling the top-level barrel to
+> re-export everything is a possible cleanup.
 
 ## Not yet modelled
 

@@ -1,10 +1,5 @@
-import type { Ability, Skill } from './common';
-
-export interface CharacterClass {
-  classId: string;
-  subclassId?: string;
-  level: number;
-}
+import type { Ability, Skill } from '../common';
+import type { CharacterClass } from './character-class';
 
 export interface Character {
   id: string;

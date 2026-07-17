@@ -1,26 +1,45 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { App } from './App.tsx';
 
 describe('App', () => {
-  it('renders the character name and class', () => {
+  it('opens on the dashboard listing every character', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: 'Bram Stonefist' })).toBeInTheDocument();
-    expect(screen.getByText('Fighter 1')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Characters' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Bram Stonefist/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Vera Quickblade/ })).toBeInTheDocument();
   });
 
-  it('renders derived abilities with their activation cost', () => {
+  it('shows derived summaries on the dashboard cards', () => {
     render(<App />);
-    expect(screen.getAllByText('Second Wind').length).toBeGreaterThan(0);
-    expect(screen.getByText('Bonus Action')).toBeInTheDocument();
-    expect(screen.getByText(/regains 1 on a short rest, all on a long rest/)).toBeInTheDocument();
+    const vera = screen.getByRole('button', { name: /Vera Quickblade/ });
+    expect(vera).toHaveTextContent('Fighter 3');
+    expect(vera).toHaveTextContent('28 HP');
+    expect(vera).toHaveTextContent('2 abilities');
+    expect(screen.getByRole('button', { name: /Bram Stonefist/ })).toHaveTextContent('1 ability');
   });
 
-  it('renders every skill', () => {
+  it('opens a character sheet when a card is clicked', async () => {
+    const user = userEvent.setup();
     render(<App />);
-    expect(screen.getByText('Athletics')).toBeInTheDocument();
-    expect(screen.getByText('Animal Handling')).toBeInTheDocument();
-    expect(screen.getByText('Sleight Of Hand')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
+
+    expect(screen.getByRole('heading', { name: 'Vera Quickblade' })).toBeInTheDocument();
+    expect(screen.getAllByText('Action Surge')).toHaveLength(2);
+    expect(screen.getByText('Free')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Characters' })).not.toBeInTheDocument();
+  });
+
+  it('returns to the dashboard from a sheet', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Bram Stonefist/ }));
+    await user.click(screen.getByRole('button', { name: /All characters/ }));
+
+    expect(screen.getByRole('heading', { name: 'Characters' })).toBeInTheDocument();
   });
 });

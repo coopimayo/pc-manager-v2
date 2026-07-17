@@ -1,4 +1,4 @@
-.app {
+.page {
   max-width: 40rem;
   margin: 0 auto;
   padding: 4rem 1.5rem;
@@ -188,4 +188,21 @@
 .empty {
   margin: 0;
   color: var(--color-text-muted);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  padding: 0.35rem 0.7rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.back:hover {
+  color: inherit;
 }

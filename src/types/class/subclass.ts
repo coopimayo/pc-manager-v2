@@ -1,9 +1,9 @@
-/** A subclass (Champion, Evoker, …), belonging to exactly one Class. */
+import type { ClassFeature } from './feature';
+
 export interface Subclass {
   id: string;
-  /** id of the Class this subclass belongs to. */
   classId: string;
   name: string;
   description: string;
-  // TODO: features granted at each subclass level.
+  features: ClassFeature[];
 }

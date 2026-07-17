@@ -28,8 +28,10 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
 
     expect(screen.getByRole('heading', { name: 'Vera Quickblade' })).toBeInTheDocument();
-    expect(screen.getAllByText('Action Surge')).toHaveLength(2);
+    expect(screen.getByText('Action Surge')).toBeInTheDocument();
     expect(screen.getByText('Free')).toBeInTheDocument();
+    expect(screen.getByText('Longbow')).toBeInTheDocument();
+    expect(screen.getByText('1d8 + 3 piercing')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Characters' })).not.toBeInTheDocument();
   });
 

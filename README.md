@@ -17,11 +17,13 @@ type model. What exists today:
   starting equipment, and two example characters.
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability modifiers, proficiency bonus, hit points, skill
-  modifiers, features at level, and abilities grouped by activation cost.
+  modifiers, the features at level that aren't already listed as an ability,
+  abilities grouped by activation cost, and weapon attacks with their to-hit
+  and damage (feat `attackRollBonus` effects fold into the to-hit).
 - **UI** (`src/pages/`) — a dashboard listing characters, and a character sheet
   with a click-to-spend use tracker on each limited-use ability.
 
-Not yet built: species, background and feat data; spells; inventory and AC;
+Not yet built: species, background and feat data; spells; armour and AC;
 character *creation* (the app only reads hardcoded characters); persistence.
 See [Not yet modelled](docs/domain-model.md#not-yet-modelled) for the rest.
 
@@ -100,12 +102,16 @@ it:
 
 - Weapon and armour proficiencies are lists of item *names*, but D&D grants them
   by category ("all Simple weapons"). The Fighter stores category labels as a
-  stand-in.
+  stand-in. Because of this, derived attacks *assume* the character is proficient
+  with every weapon they carry — true for the Fighter, wrong for anyone dabbling
+  outside their proficiencies.
 - `EquipmentPackage.items` has no quantity, so "8 javelins" isn't expressible.
 - Feature uses that scale with level (Second Wind's 2 -> 3 at level 4) — `Uses.count`
   is a plain number.
 - `derive` skips content ids it can't resolve, so a typo yields a plausible
   sheet with 0 hit points rather than an error.
 - `ClassFeature` and a granted ability each carry their own name and
-  description, so a feature like Second Wind renders under both Features and
-  Actions.
+  description, so Second Wind's name and text are authored twice. `derive`
+  drops a feature from `Sheet.features` once it grants an ability, which stops
+  the sheet repeating itself but means the feature's fuller wording — the part
+  covering Tactical Mind's interaction, say — never reaches the page.

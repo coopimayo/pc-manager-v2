@@ -1,9 +1,12 @@
 import { useState } from 'react';
 
 import { classes } from '../../data/classes';
+import { feats } from '../../data/feats';
+import { weapons } from '../../data/items';
 import { derive } from '../../lib/derive';
 import type { Ability, Character } from '../../types';
 import type { Activation, Uses } from '../../types/effect';
+import type { SheetAttack } from '../../types/sheet';
 import styles from './CharacterSheet.module.css';
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -25,6 +28,13 @@ function titleCase(value: string): string {
     /(^|-)([a-z])/g,
     (_, prefix: string, letter: string) => (prefix ? ' ' : '') + letter.toUpperCase(),
   );
+}
+
+function describeDamage(damage: SheetAttack['damage']): string {
+  const dice = `${damage.count}${damage.die}`;
+  const modifier =
+    damage.modifier === 0 ? '' : damage.modifier > 0 ? ` + ${damage.modifier}` : ` − ${-damage.modifier}`;
+  return `${dice}${modifier} ${damage.type}`;
 }
 
 function describeRecharge(uses: Uses): string {
@@ -72,7 +82,7 @@ interface CharacterSheetProps {
 }
 
 export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
-  const sheet = derive(character, classes);
+  const sheet = derive(character, classes, weapons, feats);
   const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
   const [remaining, setRemaining] = useState<Record<string, number>>({});
 
@@ -133,6 +143,28 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.heading}>Attacks</h2>
+        {sheet.attacks.length === 0 ? (
+          <p className={styles.empty}>No weapons equipped.</p>
+        ) : (
+          <ul className={styles.attacks}>
+            <li className={styles.attackHead}>
+              <span>Weapon</span>
+              <span>Attack</span>
+              <span>Damage</span>
+            </li>
+            {sheet.attacks.map((attack) => (
+              <li key={attack.name} className={styles.attack}>
+                <span className={styles.attackName}>{attack.name}</span>
+                <span className={styles.attackBonus}>{signed(attack.attackBonus)}</span>
+                <span className={styles.attackDamage}>{describeDamage(attack.damage)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className={styles.section}>

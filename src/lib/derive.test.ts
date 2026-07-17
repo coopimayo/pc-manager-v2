@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { exampleFighter } from '../data/characters/example-fighter';
+import { veraQuickblade } from '../data/characters/vera-quickblade';
 import { fighter } from '../data/classes/fighter/fighter';
+import { feats } from '../data/feats';
+import { weapons } from '../data/items';
 import { abilityModifier, derive, proficiencyBonus } from './derive';
 
 describe('abilityModifier', () => {
@@ -53,9 +56,48 @@ describe('derive', () => {
   it('includes only features at or below the character level', () => {
     expect(sheet.features.map((feature) => feature.name)).toEqual([
       'Fighting Style',
-      'Second Wind',
       'Weapon Mastery',
     ]);
+  });
+
+  it('omits features that surface as an ability instead', () => {
+    const level3 = derive({ ...exampleFighter, classes: [{ classId: 'fighter', level: 3 }] }, [
+      fighter,
+    ]);
+
+    expect(level3.features.map((feature) => feature.name)).toEqual([
+      'Fighting Style',
+      'Weapon Mastery',
+      'Tactical Mind',
+      'Fighter Subclass',
+    ]);
+    expect(level3.abilities.map((ability) => ability.name)).toEqual(['Second Wind', 'Action Surge']);
+  });
+
+  it('leaves attacks empty when no weapon content is supplied', () => {
+    expect(sheet.attacks).toEqual([]);
+  });
+
+  describe('attacks', () => {
+    const vera = derive(veraQuickblade, [fighter], weapons, feats);
+
+    it('adds a matching attack-roll bonus to the to-hit but not the damage', () => {
+      const longbow = vera.attacks.find((attack) => attack.name === 'Longbow');
+      expect(longbow).toEqual({
+        name: 'Longbow',
+        attackBonus: 7,
+        damage: { count: 1, die: 'd8', modifier: 3, type: 'piercing' },
+      });
+    });
+
+    it('uses the higher ability for a finesse weapon and ignores a ranged-only bonus', () => {
+      const shortsword = vera.attacks.find((attack) => attack.name === 'Shortsword');
+      expect(shortsword).toEqual({
+        name: 'Shortsword',
+        attackBonus: 5,
+        damage: { count: 1, die: 'd6', modifier: 3, type: 'piercing' },
+      });
+    });
   });
 
   it('collects granted abilities with their activation and uses', () => {

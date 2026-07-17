@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { classes } from '../../data/classes';
 import { derive } from '../../lib/derive';
 import type { Ability, Character } from '../../types';
@@ -25,11 +27,43 @@ function titleCase(value: string): string {
   );
 }
 
-function describeUses(uses: Uses): string {
+function describeRecharge(uses: Uses): string {
   const rules = uses.recharge
     .map((rule) => `${rule.amount === 'all' ? 'all' : rule.amount} on a ${rule.on.replace('-', ' ')}`)
     .join(', ');
-  return `${uses.count} uses — regains ${rules}`;
+  return `Regains ${rules}`;
+}
+
+interface UsesTrackerProps {
+  name: string;
+  uses: Uses;
+  remaining: number;
+  onChange: (remaining: number) => void;
+}
+
+function UsesTracker({ name, uses, remaining, onChange }: UsesTrackerProps) {
+  return (
+    <div className={styles.uses}>
+      <div className={styles.pips}>
+        {Array.from({ length: uses.count }, (_, index) => {
+          const available = index < remaining;
+          return (
+            <button
+              key={index}
+              type="button"
+              className={available ? styles.pip : styles.pipSpent}
+              aria-pressed={!available}
+              aria-label={`${name} use ${index + 1} of ${uses.count}`}
+              onClick={() => onChange(index === remaining - 1 ? index : index + 1)}
+            />
+          );
+        })}
+      </div>
+      <span className={styles.usesLabel}>
+        {remaining} of {uses.count} left
+      </span>
+    </div>
+  );
 }
 
 interface CharacterSheetProps {
@@ -40,6 +74,7 @@ interface CharacterSheetProps {
 export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
   const sheet = derive(character, classes);
   const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
+  const [remaining, setRemaining] = useState<Record<string, number>>({});
 
   return (
     <main className={styles.page}>
@@ -116,7 +151,17 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
                 </div>
                 <p className={styles.cardBody}>{ability.description}</p>
                 {ability.uses ? (
-                  <p className={styles.cardMeta}>{describeUses(ability.uses)}</p>
+                  <>
+                    <UsesTracker
+                      name={ability.name}
+                      uses={ability.uses}
+                      remaining={remaining[ability.name] ?? ability.uses.count}
+                      onChange={(next) =>
+                        setRemaining((current) => ({ ...current, [ability.name]: next }))
+                      }
+                    />
+                    <p className={styles.cardMeta}>{describeRecharge(ability.uses)}</p>
+                  </>
                 ) : null}
               </li>
             ))}

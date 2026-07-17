@@ -185,6 +185,47 @@
   opacity: 0.85;
 }
 
+.uses {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+.pips {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.pip,
+.pipSpent {
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  border: 1.5px solid var(--color-text-muted);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.pip {
+  border-color: var(--color-text);
+  background: var(--color-text);
+}
+
+.pipSpent {
+  background: transparent;
+}
+
+.pip:hover,
+.pipSpent:hover {
+  border-color: var(--color-text);
+}
+
+.usesLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
 .empty {
   margin: 0;
   color: var(--color-text-muted);

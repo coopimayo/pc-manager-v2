@@ -33,6 +33,23 @@ describe('App', () => {
     expect(screen.queryByRole('heading', { name: 'Characters' })).not.toBeInTheDocument();
   });
 
+  it('tracks uses of an ability', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
+    expect(screen.getByText('2 of 2 left')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Second Wind use 2 of 2' }));
+    expect(screen.getByText('1 of 2 left')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Second Wind use 1 of 2' }));
+    expect(screen.getByText('0 of 2 left')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Second Wind use 2 of 2' }));
+    expect(screen.getByText('2 of 2 left')).toBeInTheDocument();
+  });
+
   it('returns to the dashboard from a sheet', async () => {
     const user = userEvent.setup();
     render(<App />);

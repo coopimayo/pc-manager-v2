@@ -18,7 +18,8 @@ type model. What exists today:
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability modifiers, proficiency bonus, hit points, skill
   modifiers, features at level, and abilities grouped by activation cost.
-- **UI** (`src/pages/`) — a dashboard listing characters, and a character sheet.
+- **UI** (`src/pages/`) — a dashboard listing characters, and a character sheet
+  with a click-to-spend use tracker on each limited-use ability.
 
 Not yet built: species, background and feat data; spells; inventory and AC;
 character *creation* (the app only reads hardcoded characters); persistence.
@@ -65,6 +66,10 @@ that uses them; app-wide styles live in `src/styles/global.css`.
 
 Navigation is a `useState` in `App.tsx`, not a router — there is no URL per
 character, and a refresh returns to the dashboard.
+
+Spent ability uses are the one piece of mutable player state, held in a
+`useState` in `CharacterSheet` and keyed by ability name. Leaving the sheet
+resets every counter, since there is no persistence yet.
 
 ## Domain model
 

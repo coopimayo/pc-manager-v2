@@ -154,7 +154,7 @@ interface Feat {
 }
 ```
 
-### Effect — [`effect.ts`](../src/types/effect.ts)
+### Effect — [`effect/`](../src/types/effect)
 
 A discriminated union of machine-readable benefits. Feats, traits and class
 features all carry `effects: Effect[]`; apply them with a `switch (effect.kind)`.
@@ -164,8 +164,30 @@ Widen the union as new kinds are needed.
 type Effect =
   | { kind: 'abilityScoreIncrease'; ability: Ability; amount: number }
   | { kind: 'grantSpells'; spellIds: string[]; castingAbility: Ability }
-  | { kind: 'grantReaction'; name: string; description: string; trigger: string }
+  | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantProficiency'; skill: Skill };
+```
+
+`grantAbility` covers anything the character can *do*. Rather than a separate
+kind per action type, the timing is a field — `Activation` — so that `trigger` is
+required exactly when the ability is a Reaction and impossible otherwise:
+
+```ts
+type Activation =
+  | { type: 'action' }
+  | { type: 'bonus-action' }
+  | { type: 'reaction'; trigger: string }
+  | { type: 'free' }        // activated, but costs no action (Action Surge)
+  | { type: 'passive' };    // always on, never activated
+```
+
+`Uses` is the resource side — how many times, and what restores it. `recharge` is
+a *list* because a single rule can't describe Second Wind, which regains one use
+on a Short Rest and all of them on a Long Rest:
+
+```ts
+interface RechargeRule { on: 'short-rest' | 'long-rest' | 'turn'; amount: number | 'all'; }
+interface Uses { count: number; recharge: RechargeRule[]; }
 ```
 
 ### Items — [`item/`](../src/types/item)
@@ -250,9 +272,9 @@ graph TD
 ## Importing
 
 Types live under `src/types/`, **one type per file**. Related types are grouped
-into folders — `common/`, `character/`, `item/`, `class/`, `species/` — each with
-a barrel `index.ts`; the single-type entities (`background.ts`, `feat.ts`,
-`effect.ts`) sit at the top level. `src/types/index.ts` re-exports the commonly
+into folders — `common/`, `character/`, `item/`, `class/`, `species/`, `effect/` —
+each with a barrel `index.ts`; the single-type entities (`background.ts`,
+`feat.ts`) sit at the top level. `src/types/index.ts` re-exports the commonly
 used types:
 
 ```ts

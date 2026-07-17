@@ -14,7 +14,21 @@ export const fighterFeatures: ClassFeature[] = [
     description:
       'As a Bonus Action, you can regain Hit Points equal to 1d10 plus your Fighter level. You have two uses, regaining one on a Short Rest and all on a Long Rest.',
     level: 1,
-    effects: [],
+    effects: [
+      {
+        kind: 'grantAbility',
+        name: 'Second Wind',
+        description: 'Regain Hit Points equal to 1d10 plus your Fighter level.',
+        activation: { type: 'bonus-action' },
+        uses: {
+          count: 2,
+          recharge: [
+            { on: 'short-rest', amount: 1 },
+            { on: 'long-rest', amount: 'all' },
+          ],
+        },
+      },
+    ],
   },
   {
     id: 'fighter-weapon-mastery',
@@ -30,7 +44,15 @@ export const fighterFeatures: ClassFeature[] = [
     description:
       'On your turn, you can take one additional action, except the Magic action. Once you use this feature, you must finish a Short or Long Rest to use it again.',
     level: 2,
-    effects: [],
+    effects: [
+      {
+        kind: 'grantAbility',
+        name: 'Action Surge',
+        description: 'Take one additional action, except the Magic action.',
+        activation: { type: 'free' },
+        uses: { count: 1, recharge: [{ on: 'short-rest', amount: 'all' }] },
+      },
+    ],
   },
   {
     id: 'fighter-tactical-mind',

@@ -14,7 +14,7 @@ export interface Item {
   weight: number;
 }
 
-export interface EquipmentOption {
+export interface EquipmentPackage {
   label: string;
   items: Item[];
   gold: number;
@@ -56,7 +56,6 @@ export interface Weapon extends Item {
   damage: Damage;
   properties: WeaponProperty[];
   mastery: WeaponMastery;
-  /** Normal / long range in feet, for ranged and thrown weapons. */
   range?: { normal: number; long: number };
 }
 
@@ -65,12 +64,9 @@ export interface ArtisanTools extends Item {
 }
 
 export interface Armor extends Item {
-  /** Base AC before the Dex modifier is added. */
   armorClass: number;
   armorType: 'light' | 'medium' | 'heavy';
-  /** Cap on the Dex modifier added to AC: null = no cap (light), 2 = medium, 0 = heavy. */
   maxDexBonus: number | null;
-  /** Minimum Strength to wear without a speed penalty (heavy armor). */
   strengthRequirement?: number;
   stealthDisadvantage: boolean;
 }

@@ -1,5 +1,5 @@
-import type { Ability, Die, Skill } from '../common';
-import type { EquipmentOption, Weapon, ArtisanTools, Armor } from '../item';
+import type { Ability, Die, Skill, Choice } from '../common';
+import type { EquipmentPackage, Weapon, ArtisanTools, Armor } from '../item';
 import type { ClassFeature } from './feature';
 
 export interface Class {
@@ -9,10 +9,10 @@ export interface Class {
   hitDie: Die;
   primaryAbility: Ability[];
   savingThrowProficiencies: Ability[];
-  skillProficiencies: Skill[];
+  skillProficiencies: Choice<Skill>;
   weaponProficiencies: Weapon['name'][];
   toolProficiencies: ArtisanTools['name'][];
   armorProficiencies: Armor['name'][];
-  startingEquipment: EquipmentOption[];
+  startingEquipment: Choice<EquipmentPackage>;
   features: ClassFeature[];
 }

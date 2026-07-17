@@ -1,3 +1,8 @@
+export interface Choice<T> {
+  choose: number;
+  from: T[];
+}
+
 export type Ability = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
 
 export type Size = 'small' | 'medium' | 'large';
@@ -38,3 +43,4 @@ export type Skill =
   | 'sleight-of-hand'
   | 'stealth'
   | 'survival';
+  

@@ -1,8 +1,8 @@
-import type { Activation, Uses } from '../effect';
+import type { Activation, RechargeRule } from '../effect';
 
 export interface SheetAbility {
   name: string;
   description: string;
   activation: Activation;
-  uses?: Uses;
+  uses?: { count: number; recharge: RechargeRule[] };
 }

@@ -6,7 +6,7 @@ import { weapons } from '../../data/items';
 import { derive } from '../../lib/derive';
 import type { Ability, Character } from '../../types';
 import type { Activation, Uses } from '../../types/effect';
-import type { SheetAttack } from '../../types/sheet';
+import type { SheetAbility, SheetAttack } from '../../types/sheet';
 import styles from './CharacterSheet.module.css';
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -46,7 +46,7 @@ function describeRecharge(uses: Uses): string {
 
 interface UsesTrackerProps {
   name: string;
-  uses: Uses;
+  uses: NonNullable<SheetAbility['uses']>;
   remaining: number;
   onChange: (remaining: number) => void;
 }
@@ -211,6 +211,7 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
                 <span className={styles.badge}>Level {feature.level}</span>
               </div>
               <p className={styles.cardBody}>{feature.description}</p>
+              {feature.detail ? <p className={styles.cardMeta}>{feature.detail}</p> : null}
             </li>
           ))}
         </ul>

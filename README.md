@@ -14,17 +14,23 @@ type model. What exists today:
   feats, items). One type per file. Fully documented in
   [docs/domain-model.md](docs/domain-model.md).
 - **Content data** (`src/data/`) — the Fighter class through level 5, its
-  starting equipment, and two example characters.
+  starting equipment, a set of feats (fighting styles plus general feats,
+  including Ability Score Improvement), and two example characters.
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
-  into a `Sheet`: ability modifiers, proficiency bonus, hit points, skill
-  modifiers, the features at level that aren't already listed as an ability,
-  abilities grouped by activation cost, and weapon attacks with their to-hit
-  and damage (feat `attackRollBonus` effects fold into the to-hit).
-- **UI** (`src/pages/`) — a dashboard listing characters, and a character sheet
-  with a click-to-spend use tracker on each limited-use ability.
+  into a `Sheet`: ability scores with chosen and feat increases folded in (capped
+  at 20) and their modifiers, proficiency bonus, hit points, skill modifiers, the
+  character's feats, the features at level that aren't already shown as an ability
+  or a granted feat, abilities grouped by activation cost with level-scaled uses
+  resolved against class level, and weapon attacks with their to-hit and damage
+  (feat `attackRollBonus` effects fold into the to-hit).
+- **UI** (`src/pages/`, `src/components/`) — a dashboard listing characters, and a
+  character sheet with a click-to-spend use tracker on each limited-use ability
+  and a **Level Up** button that re-derives the sheet. Leveling into a feat slot
+  (like the level-4 ASI) opens a dialog to pick the feat and, for Ability Score
+  Improvement, allocate the +2 / +1 increase.
 
-Not yet built: species, background and feat data; spells; armour and AC;
-character *creation* (the app only reads hardcoded characters); persistence.
+Not yet built: species and background data; spells; armour and AC; character
+*creation* (the app only reads hardcoded characters); persistence.
 See [Not yet modelled](docs/domain-model.md#not-yet-modelled) for the rest.
 
 ## Development
@@ -58,6 +64,7 @@ src/
     Dashboard/        the character list
     CharacterSheet/   the derived sheet
   components/         reusable presentational components
+    FeatChoiceDialog/ the level-up feat picker + ASI allocator
   hooks/              reusable React hooks
   styles/             global CSS
   test/setup.ts       Vitest setup (jest-dom matchers, cleanup)
@@ -69,9 +76,10 @@ that uses them; app-wide styles live in `src/styles/global.css`.
 Navigation is a `useState` in `App.tsx`, not a router — there is no URL per
 character, and a refresh returns to the dashboard.
 
-Spent ability uses are the one piece of mutable player state, held in a
-`useState` in `CharacterSheet` and keyed by ability name. Leaving the sheet
-resets every counter, since there is no persistence yet.
+Player edits — spent ability uses, and **Level Up** (which raises the primary
+class level and can add a chosen feat with its ability-score increases) — are
+held in local `useState` in `CharacterSheet`. Leaving the sheet discards them,
+since there is no persistence yet.
 
 ## Domain model
 
@@ -106,8 +114,6 @@ it:
   with every weapon they carry — true for the Fighter, wrong for anyone dabbling
   outside their proficiencies.
 - `EquipmentPackage.items` has no quantity, so "8 javelins" isn't expressible.
-- Feature uses that scale with level (Second Wind's 2 -> 3 at level 4) — `Uses.count`
-  is a plain number.
 - `derive` skips content ids it can't resolve, so a typo yields a plausible
   sheet with 0 hit points rather than an error.
 - `ClassFeature` and a granted ability each carry their own name and

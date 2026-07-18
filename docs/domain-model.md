@@ -54,6 +54,7 @@ interface Character {
   backgroundId: string;
   classes: CharacterClass[];            // one entry per class → multiclassing
   abilityScores: Record<Ability, number>;
+  abilityScoreIncreases?: Partial<Record<Ability, number>>;  // chosen bonuses (ASI); folded by derive
   skillProficiencies: Skill[];          // the skills actually chosen
   featIds: string[];
   weaponIds: string[];                  // → Weapon, the weapons carried
@@ -170,6 +171,7 @@ Widen the union as new kinds are needed.
 ```ts
 type Effect =
   | { kind: 'abilityScoreIncrease'; ability: Ability; amount: number }
+  | { kind: 'abilityScoreChoice'; points: number; maxPerAbility: number }   // player-allocated, e.g. ASI
   | { kind: 'grantSpells'; spellIds: string[]; castingAbility: Ability }
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
@@ -323,9 +325,11 @@ Known gaps, roughly in priority order for making the app a functional creator:
 - **Spells & spellcasting** — no `Spell` type yet; `Effect.grantSpells`
   references spell ids that don't resolve to anything.
 - **Languages** and **conditions** — no types yet.
-- **Character detail** — ability-score *bonuses* (the background +2/+1
-  allocation) and hit points are not on `Character`. Inventory is only
-  `weaponIds` so far; armour, equipped state and quantities are unmodelled.
+- **Character detail** — chosen ability-score *bonuses* now live in
+  `Character.abilityScoreIncreases` (used by the ASI feat; the background +2/+1
+  allocation could reuse it but has no UI yet). Hit points are still not stored.
+  Inventory is only `weaponIds` so far; armour, equipped state and quantities are
+  unmodelled.
 - **The creator UI** — the React app is still the scaffold.
 
 ### Small fixes

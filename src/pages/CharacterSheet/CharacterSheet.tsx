@@ -1,15 +1,29 @@
 import { useState } from 'react';
 
+import { FeatChoiceDialog } from '../../components/FeatChoiceDialog';
 import { classes } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
 import { derive } from '../../lib/derive';
 import type { Ability, Character } from '../../types';
+import type { ClassFeature } from '../../types/class';
 import type { Activation, Uses } from '../../types/effect';
 import type { SheetAbility, SheetAttack } from '../../types/sheet';
 import styles from './CharacterSheet.module.css';
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+
+function grantFeatFeatureGained(before: Character, after: Character): ClassFeature | undefined {
+  const primary = after.classes[0];
+  const previous = before.classes[0];
+  if (!primary || !previous) return undefined;
+  const definition = classes.find((entry) => entry.id === primary.classId);
+  if (!definition) return undefined;
+  return definition.features.find(
+    (feature) =>
+      feature.grantFeat && feature.level > previous.level && feature.level <= primary.level,
+  );
+}
 
 const activationLabels: Record<Activation['type'], string> = {
   'action': 'Action',
@@ -81,16 +95,65 @@ interface CharacterSheetProps {
   onBack: () => void;
 }
 
-export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
+export function CharacterSheet({ character: initialCharacter, onBack }: CharacterSheetProps) {
+  const [character, setCharacter] = useState(initialCharacter);
+  const [remaining, setRemaining] = useState<Record<string, number>>({});
+  const [pending, setPending] = useState<{ character: Character; feature: ClassFeature } | null>(
+    null,
+  );
   const sheet = derive(character, classes, weapons, feats);
   const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
-  const [remaining, setRemaining] = useState<Record<string, number>>({});
+  const canLevelUp = sheet.level < 20;
+
+  const pendingOptions = pending
+    ? feats.filter(
+        (feat) =>
+          feat.category === pending.feature.grantFeat &&
+          !pending.character.featIds.includes(feat.id),
+      )
+    : [];
+
+  function levelUp() {
+    const next: Character = {
+      ...character,
+      classes: character.classes.map((entry, index) =>
+        index === 0 ? { ...entry, level: entry.level + 1 } : entry,
+      ),
+    };
+    const feature = grantFeatFeatureGained(character, next);
+    const options = feature
+      ? feats.filter((feat) => feat.category === feature.grantFeat && !next.featIds.includes(feat.id))
+      : [];
+    if (feature && options.length > 0) {
+      setPending({ character: next, feature });
+    } else {
+      setCharacter(next);
+    }
+  }
+
+  function chooseFeat(featId: string) {
+    if (!pending) return;
+    setCharacter({ ...pending.character, featIds: [...pending.character.featIds, featId] });
+    setPending(null);
+  }
 
   return (
+    <>
     <main className={styles.page}>
-      <button type="button" className={styles.back} onClick={onBack}>
-        ← All characters
-      </button>
+      <div className={styles.topbar}>
+        <button type="button" className={styles.back} onClick={onBack}>
+          ← All characters
+        </button>
+        <button
+          type="button"
+          className={styles.levelUp}
+          onClick={levelUp}
+          disabled={!canLevelUp}
+          title={canLevelUp ? undefined : 'Maximum level reached'}
+        >
+          Level Up
+        </button>
+      </div>
 
       <header className={styles.header}>
         <h1 className={styles.title}>{sheet.name}</h1>
@@ -237,5 +300,14 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
         )}
       </section>
     </main>
+    {pending ? (
+      <FeatChoiceDialog
+        featureName={pending.feature.name}
+        options={pendingOptions}
+        onChoose={chooseFeat}
+        onCancel={() => setPending(null)}
+      />
+    ) : null}
+    </>
   );
 }

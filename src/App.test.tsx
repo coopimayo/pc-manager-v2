@@ -52,6 +52,43 @@ describe('App', () => {
     expect(screen.getByText('2 of 2 left')).toBeInTheDocument();
   });
 
+  it('prompts for a feat when leveling into an Ability Score Improvement', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Bram Stonefist/ }));
+    const levelUp = () => screen.getByRole('button', { name: 'Level Up' });
+    await user.click(levelUp());
+    await user.click(levelUp());
+    await user.click(levelUp());
+
+    expect(screen.getByText('Choose a feat to gain.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Ability Score Improvement/ }));
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    expect(screen.queryByText('Choose a feat to gain.')).not.toBeInTheDocument();
+    expect(screen.getByText('Fighter 4')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Feats' })).toBeInTheDocument();
+    expect(screen.getByText('Ability Score Improvement')).toBeInTheDocument();
+  });
+
+  it('aborts the level-up when the feat choice is cancelled', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Bram Stonefist/ }));
+    const levelUp = () => screen.getByRole('button', { name: 'Level Up' });
+    await user.click(levelUp());
+    await user.click(levelUp());
+    await user.click(levelUp());
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.queryByText('Choose a feat to gain.')).not.toBeInTheDocument();
+    expect(screen.getByText('Fighter 3')).toBeInTheDocument();
+  });
+
   it('returns to the dashboard from a sheet', async () => {
     const user = userEvent.setup();
     render(<App />);

@@ -109,6 +109,12 @@ of them is shown as its own feature card. The Ability Score Improvement feat is 
 exception — it carries only an `abilityScoreChoice`, so its increase folds into the
 ability totals and it is left off the Feats section rather than listed as a card.
 
+A feature with a `replaceFeature` effect supersedes the feature it names: once both
+are gained the older one drops out of the derivation entirely, so an upgrade like
+the Champion's Superior Critical shows in place of Improved Critical rather than
+alongside it. (The feature carrying the effect is still shown — unlike the grant\*
+effects, it isn't represented elsewhere.)
+
 ### Species, Subspecies & trait — [`species/`](../src/types/species)
 
 ```ts
@@ -183,6 +189,7 @@ type Effect =
   | { kind: 'grantProficiency'; skill: Skill }
   | { kind: 'grantFeat'; category: FeatCategory }                           // "choose a feat" — value = the category offered
   | { kind: 'grantSubclass' }                                               // "choose a subclass" — the class is implied by the feature
+  | { kind: 'replaceFeature'; featureId: string }                          // this feature supersedes an earlier one, dropping it from the sheet
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };
 ```
 

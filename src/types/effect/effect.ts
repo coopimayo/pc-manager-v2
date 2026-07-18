@@ -13,4 +13,5 @@ export type Effect =
   | { kind: 'grantProficiency'; skill: Skill }
   | { kind: 'grantFeat'; category: FeatCategory }
   | { kind: 'grantSubclass' }
+  | { kind: 'replaceFeature'; featureId: string }
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };

@@ -15,6 +15,7 @@ import { skillAbilities } from './skill-abilities';
 type GrantAbility = Extract<Effect, { kind: 'grantAbility' }>;
 type GrantWeaponMastery = Extract<Effect, { kind: 'grantWeaponMastery' }>;
 type GrantFeat = Extract<Effect, { kind: 'grantFeat' }>;
+type ReplaceFeature = Extract<Effect, { kind: 'replaceFeature' }>;
 type AttackRollBonus = Extract<Effect, { kind: 'attackRollBonus' }>;
 
 interface TakenFeature {
@@ -52,6 +53,12 @@ export function grantedFeatCategory(feature: ClassFeature): FeatCategory | undef
 
 export function grantsSubclass(feature: ClassFeature): boolean {
   return feature.effects.some((effect) => effect.kind === 'grantSubclass');
+}
+
+function replacedFeatureIds(feature: ClassFeature): string[] {
+  return feature.effects
+    .filter((effect): effect is ReplaceFeature => effect.kind === 'replaceFeature')
+    .map((effect) => effect.featureId);
 }
 
 function isAbilityScoreImprovement(feat: Feat): boolean {
@@ -97,7 +104,7 @@ function featuresFor(
   classes: Class[],
   subclasses: Subclass[],
 ): TakenFeature[] {
-  return character.classes.flatMap((taken) => {
+  const taken = character.classes.flatMap((taken) => {
     const found = classes.find((entry) => entry.id === taken.classId);
     if (!found) return [];
     const subclass = taken.subclassId
@@ -107,6 +114,9 @@ function featuresFor(
       .filter((feature) => feature.level <= taken.level)
       .map((feature) => ({ feature, classLevel: taken.level }));
   });
+
+  const replaced = new Set(taken.flatMap(({ feature }) => replacedFeatureIds(feature)));
+  return taken.filter(({ feature }) => !replaced.has(feature.id));
 }
 
 function sheetFeature({ feature, classLevel }: TakenFeature): SheetFeature {

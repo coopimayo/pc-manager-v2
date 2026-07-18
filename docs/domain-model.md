@@ -31,6 +31,7 @@ Size         // 'small' | 'medium' | 'large'
 Die          // 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100'
 DamageType   // 'acid' | 'bludgeoning' | … | 'thunder'  (13 types)
 Skill        // 'acrobatics' | 'animal-handling' | … | 'survival'  (18 skills)
+LevelScaled  // { steps: { at; value }[] }  — a number that grows with class level
 ```
 
 ## Character instance — [`character/`](../src/types/character)
@@ -166,6 +167,7 @@ type Effect =
   | { kind: 'abilityScoreIncrease'; ability: Ability; amount: number }
   | { kind: 'grantSpells'; spellIds: string[]; castingAbility: Ability }
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
+  | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };
 ```
@@ -189,8 +191,17 @@ on a Short Rest and all of them on a Long Rest:
 
 ```ts
 interface RechargeRule { on: 'short-rest' | 'long-rest' | 'turn'; amount: number | 'all'; }
-interface Uses { count: number; recharge: RechargeRule[]; }
+interface Uses { count: number | LevelScaled; recharge: RechargeRule[]; }
 ```
+
+`count` (and `grantWeaponMastery.count`) may be a `LevelScaled` table rather than a
+fixed number, because features such as Second Wind (2 → 3 → 4 uses) and Weapon
+Mastery (3 → 4 → 5 → 6 weapons) grow with the character's level in that class
+without being re-granted. A `LevelScaled` value is the `value` of the highest
+`step` whose `at` does not exceed the level. The derivation layer resolves it
+against the **class level the feature came from** — not total character level, so a
+Fighter 1 / Wizard 9 still has two uses of Second Wind — and the derived `Sheet`
+only ever carries concrete numbers.
 
 ### Items — [`item/`](../src/types/item)
 

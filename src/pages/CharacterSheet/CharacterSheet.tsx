@@ -216,6 +216,26 @@ export function CharacterSheet({ character, onBack }: CharacterSheetProps) {
           ))}
         </ul>
       </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.heading}>Feats</h2>
+        {sheet.feats.length === 0 ? (
+          <p className={styles.empty}>No feats.</p>
+        ) : (
+          <ul className={styles.cards}>
+            {sheet.feats.map((feat) => (
+              <li key={feat.name} className={styles.card}>
+                <div className={styles.cardHead}>
+                  <strong>{feat.name}</strong>
+                  <span className={styles.badge}>{titleCase(feat.category)}</span>
+                </div>
+                <p className={styles.cardBody}>{feat.description}</p>
+                {feat.note ? <p className={styles.cardMeta}>{feat.note}</p> : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </main>
   );
 }

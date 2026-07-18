@@ -54,23 +54,20 @@ describe('derive', () => {
   });
 
   it('includes only features at or below the character level', () => {
-    expect(sheet.features.map((feature) => feature.name)).toEqual([
-      'Fighting Style',
-      'Weapon Mastery',
-    ]);
+    expect(sheet.features.map((feature) => feature.name)).toEqual(['Weapon Mastery']);
   });
 
-  it('omits features that surface as an ability instead', () => {
+  it('omits features that surface as an ability or a granted feat instead', () => {
     const level3 = derive({ ...exampleFighter, classes: [{ classId: 'fighter', level: 3 }] }, [
       fighter,
     ]);
 
     expect(level3.features.map((feature) => feature.name)).toEqual([
-      'Fighting Style',
       'Weapon Mastery',
       'Tactical Mind',
       'Fighter Subclass',
     ]);
+    expect(level3.features.map((feature) => feature.name)).not.toContain('Fighting Style');
     expect(level3.abilities.map((ability) => ability.name)).toEqual(['Second Wind', 'Action Surge']);
   });
 
@@ -97,6 +94,25 @@ describe('derive', () => {
         attackBonus: 5,
         damage: { count: 1, die: 'd6', modifier: 3, type: 'piercing' },
       });
+    });
+  });
+
+  describe('feats', () => {
+    const vera = derive(veraQuickblade, [fighter], weapons, feats);
+
+    it('lists the character feats with their category', () => {
+      expect(vera.feats).toEqual([
+        {
+          name: 'Archery',
+          description: 'You gain a +2 bonus to attack rolls you make with Ranged weapons.',
+          category: 'fighting-style',
+          note: 'Already included in your totals: +2 to ranged attack rolls.',
+        },
+      ]);
+    });
+
+    it('is empty when no feat content is supplied', () => {
+      expect(sheet.feats).toEqual([]);
     });
   });
 

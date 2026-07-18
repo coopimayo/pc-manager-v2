@@ -6,4 +6,5 @@ export interface ClassFeature {
   description: string;
   level: number;
   effects: Effect[];
+  grantFeat?: boolean;
 }

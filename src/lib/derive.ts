@@ -6,6 +6,7 @@ import type {
   SheetAbility,
   SheetAttack,
   SheetClass,
+  SheetFeat,
   SheetFeature,
   SheetSkill,
 } from '../types/sheet';
@@ -41,6 +42,20 @@ function dieSize(die: Die): number {
 
 function grantsAbility(feature: ClassFeature): boolean {
   return feature.effects.some((effect) => effect.kind === 'grantAbility');
+}
+
+function featNote(feat: Feat): string | undefined {
+  const applied = feat.effects.flatMap((effect) => {
+    switch (effect.kind) {
+      case 'attackRollBonus':
+        return [`+${effect.amount} to ${effect.attackType} attack rolls`];
+      case 'abilityScoreIncrease':
+        return [`+${effect.amount} ${effect.ability.toUpperCase()}`];
+      default:
+        return [];
+    }
+  });
+  return applied.length ? `Already included in your totals: ${applied.join(', ')}.` : undefined;
 }
 
 function featuresFor(character: Character, classes: Class[]): TakenFeature[] {
@@ -166,6 +181,12 @@ export function derive(
     return found ? [{ name: found.name, level: entry.level }] : [];
   });
 
+  const characterFeats: SheetFeat[] = character.featIds.flatMap((id) => {
+    const feat = feats.find((entry) => entry.id === id);
+    if (!feat) return [];
+    return [{ name: feat.name, description: feat.description, category: feat.category, note: featNote(feat) }];
+  });
+
   return {
     name: character.name,
     classes: taken,
@@ -175,7 +196,10 @@ export function derive(
     abilityModifiers,
     hitPoints: hitPointsFor(character, classes, abilityModifiers.con),
     skills,
-    features: features.filter(({ feature }) => !grantsAbility(feature)).map(sheetFeature),
+    features: features
+      .filter(({ feature }) => !grantsAbility(feature) && !feature.grantFeat)
+      .map(sheetFeature),
+    feats: characterFeats,
     abilities,
     attacks: attacksFor(character, weapons, feats, abilityModifiers, bonus),
   };

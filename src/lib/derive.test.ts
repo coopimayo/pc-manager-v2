@@ -114,6 +114,21 @@ describe('derive', () => {
     it('is empty when no feat content is supplied', () => {
       expect(sheet.feats).toEqual([]);
     });
+
+    it('omits the Ability Score Improvement feat but keeps its increase', () => {
+      const boosted = derive(
+        {
+          ...exampleFighter,
+          featIds: ['ability-score-improvement'],
+          abilityScoreIncreases: { str: 2 },
+        },
+        [fighter],
+        weapons,
+        feats,
+      );
+      expect(boosted.feats).toEqual([]);
+      expect(boosted.abilityScores.str).toBe(18);
+    });
   });
 
   describe('ability score increases', () => {

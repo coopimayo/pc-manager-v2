@@ -72,7 +72,7 @@ describe('App', () => {
     expect(screen.queryByText('Choose a feat to gain.')).not.toBeInTheDocument();
     expect(screen.getByText('Fighter 4')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Feats' })).toBeInTheDocument();
-    expect(screen.getByText('Ability Score Improvement')).toBeInTheDocument();
+    expect(screen.queryByText('Ability Score Improvement')).not.toBeInTheDocument();
 
     const abilityScores = screen
       .getByRole('heading', { name: 'Ability Scores' })

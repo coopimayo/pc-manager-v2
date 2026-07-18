@@ -50,6 +50,10 @@ export function grantedFeatCategory(feature: ClassFeature): FeatCategory | undef
   return effect?.category;
 }
 
+function isAbilityScoreImprovement(feat: Feat): boolean {
+  return feat.effects.some((effect) => effect.kind === 'abilityScoreChoice');
+}
+
 function featNote(feat: Feat): string | undefined {
   const applied = feat.effects.flatMap((effect) => {
     switch (effect.kind) {
@@ -210,7 +214,7 @@ export function derive(
 
   const characterFeats: SheetFeat[] = character.featIds.flatMap((id) => {
     const feat = feats.find((entry) => entry.id === id);
-    if (!feat) return [];
+    if (!feat || isAbilityScoreImprovement(feat)) return [];
     return [{ name: feat.name, description: feat.description, category: feat.category, note: featNote(feat) }];
   });
 

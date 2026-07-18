@@ -44,7 +44,7 @@ export const champion: Subclass = {
       description:
         'Your attack rolls with weapons and Unarmed Strikes can now score a Critical Hit on a roll of 18–20.',
       level: 15,
-      effects: [],
+      effects: [{ kind: 'replaceFeature', featureId: 'champion-improved-critical' }],
     },
     {
       id: 'champion-defy-death',

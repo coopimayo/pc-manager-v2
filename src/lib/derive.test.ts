@@ -90,6 +90,23 @@ describe('derive', () => {
     ]);
   });
 
+  it('shows a feature it replaces until the upgrade is gained', () => {
+    const withClasses = (level: number) => ({
+      ...exampleFighter,
+      classes: [{ classId: 'fighter', subclassId: 'champion', level }],
+    });
+    const names = (level: number) =>
+      derive(withClasses(level), [fighter], [], [], [champion]).features.map(
+        (feature) => feature.name,
+      );
+
+    expect(names(3)).toContain('Improved Critical');
+    expect(names(3)).not.toContain('Superior Critical');
+
+    expect(names(15)).toContain('Superior Critical');
+    expect(names(15)).not.toContain('Improved Critical');
+  });
+
   it('leaves attacks empty when no weapon content is supplied', () => {
     expect(sheet.attacks).toEqual([]);
   });

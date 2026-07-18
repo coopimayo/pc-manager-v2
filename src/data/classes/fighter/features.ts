@@ -73,7 +73,7 @@ export const fighterFeatures: ClassFeature[] = [
     description:
       'You gain a Fighter subclass of your choice, which grants you features at levels 3, 7, 10, and 15.',
     level: 3,
-    effects: [],
+    effects: [{ kind: 'grantSubclass' }],
   },
   {
     id: 'fighter-asi-4',

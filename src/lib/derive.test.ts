@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { exampleFighter } from '../data/characters/example-fighter';
 import { veraQuickblade } from '../data/characters/vera-quickblade';
+import { champion } from '../data/classes/fighter/champion';
 import { fighter } from '../data/classes/fighter/fighter';
 import { feats } from '../data/feats';
 import { weapons } from '../data/items';
@@ -57,7 +58,7 @@ describe('derive', () => {
     expect(sheet.features.map((feature) => feature.name)).toEqual(['Weapon Mastery']);
   });
 
-  it('omits features that surface as an ability or a granted feat instead', () => {
+  it('omits features that surface as an ability, a granted feat, or a subclass choice', () => {
     const level3 = derive({ ...exampleFighter, classes: [{ classId: 'fighter', level: 3 }] }, [
       fighter,
     ]);
@@ -65,10 +66,28 @@ describe('derive', () => {
     expect(level3.features.map((feature) => feature.name)).toEqual([
       'Weapon Mastery',
       'Tactical Mind',
-      'Fighter Subclass',
     ]);
     expect(level3.features.map((feature) => feature.name)).not.toContain('Fighting Style');
+    expect(level3.features.map((feature) => feature.name)).not.toContain('Fighter Subclass');
     expect(level3.abilities.map((ability) => ability.name)).toEqual(['Second Wind', 'Action Surge']);
+  });
+
+  it('folds the chosen subclass features into the sheet', () => {
+    const champion3 = derive(
+      { ...exampleFighter, classes: [{ classId: 'fighter', subclassId: 'champion', level: 3 }] },
+      [fighter],
+      [],
+      [],
+      [champion],
+    );
+
+    expect(champion3.classes[0].subclass).toBe('Champion');
+    expect(champion3.features.map((feature) => feature.name)).toEqual([
+      'Weapon Mastery',
+      'Tactical Mind',
+      'Improved Critical',
+      'Remarkable Athlete',
+    ]);
   });
 
   it('leaves attacks empty when no weapon content is supplied', () => {

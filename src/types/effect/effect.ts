@@ -12,4 +12,5 @@ export type Effect =
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
   | { kind: 'grantFeat'; category: FeatCategory }
+  | { kind: 'grantSubclass' }
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };

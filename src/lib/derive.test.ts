@@ -81,7 +81,7 @@ describe('derive', () => {
       [champion],
     );
 
-    expect(champion3.classes[0].subclass).toBe('Champion');
+    expect(champion3.classes[0]?.subclass).toBe('Champion');
     expect(champion3.features.map((feature) => feature.name)).toEqual([
       'Weapon Mastery',
       'Tactical Mind',

@@ -21,7 +21,7 @@ export const fighterFeatures: ClassFeature[] = [
         description: 'Regain Hit Points equal to 1d10 plus your Fighter level.',
         activation: { type: 'bonus-action' },
         uses: {
-          count: 2,
+          count: { steps: [{ at: 1, value: 2 }, { at: 4, value: 3 }, { at: 10, value: 4 }] },
           recharge: [
             { on: 'short-rest', amount: 1 },
             { on: 'long-rest', amount: 'all' },
@@ -34,9 +34,14 @@ export const fighterFeatures: ClassFeature[] = [
     id: 'fighter-weapon-mastery',
     name: 'Weapon Mastery',
     description:
-      'You can use the mastery properties of three kinds of Simple or Martial weapons of your choice.',
+      'You can use the mastery properties of Simple or Martial weapons of your choice.',
     level: 1,
-    effects: [],
+    effects: [
+      {
+        kind: 'grantWeaponMastery',
+        count: { steps: [{ at: 1, value: 3 }, { at: 4, value: 4 }, { at: 10, value: 5 }, { at: 16, value: 6 }] },
+      },
+    ],
   },
   {
     id: 'fighter-action-surge',

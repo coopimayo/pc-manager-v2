@@ -5,6 +5,7 @@ import type { Uses } from './uses';
 
 export type Effect =
   | { kind: 'abilityScoreIncrease'; ability: Ability; amount: number }
+  | { kind: 'abilityScoreChoice'; points: number; maxPerAbility: number }
   | { kind: 'grantSpells'; spellIds: string[]; castingAbility: Ability }
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }

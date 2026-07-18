@@ -9,6 +9,7 @@ export interface Character {
   backgroundId: string;
   classes: CharacterClass[];
   abilityScores: Record<Ability, number>;
+  abilityScoreIncreases?: Partial<Record<Ability, number>>;
   skillProficiencies: Skill[];
   featIds: string[];
   weaponIds: string[];

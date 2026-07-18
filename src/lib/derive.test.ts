@@ -100,6 +100,47 @@ describe('derive', () => {
     });
   });
 
+  describe('level scaling', () => {
+    const atLevel = (level: number) =>
+      derive({ ...exampleFighter, classes: [{ classId: 'fighter', level }] }, [fighter]);
+
+    const secondWindUses = (level: number) =>
+      atLevel(level).abilities.find((ability) => ability.name === 'Second Wind')?.uses?.count;
+
+    const weaponMastery = (level: number) =>
+      atLevel(level).features.find((feature) => feature.name === 'Weapon Mastery')?.detail;
+
+    it('scales Second Wind uses against the Fighter level', () => {
+      expect(secondWindUses(1)).toBe(2);
+      expect(secondWindUses(3)).toBe(2);
+      expect(secondWindUses(4)).toBe(3);
+      expect(secondWindUses(10)).toBe(4);
+      expect(secondWindUses(20)).toBe(4);
+    });
+
+    it('scales the Weapon Mastery weapon count against the Fighter level', () => {
+      expect(weaponMastery(1)).toBe('3 weapons');
+      expect(weaponMastery(4)).toBe('4 weapons');
+      expect(weaponMastery(10)).toBe('5 weapons');
+      expect(weaponMastery(16)).toBe('6 weapons');
+    });
+
+    it('scales against the class level, not total character level, when multiclassed', () => {
+      const multiclass = derive(
+        {
+          ...exampleFighter,
+          classes: [
+            { classId: 'fighter', level: 1 },
+            { classId: 'wizard', level: 9 },
+          ],
+        },
+        [fighter],
+      );
+      const secondWind = multiclass.abilities.find((ability) => ability.name === 'Second Wind');
+      expect(secondWind?.uses?.count).toBe(2);
+    });
+  });
+
   it('collects granted abilities with their activation and uses', () => {
     expect(sheet.abilities).toEqual([
       {

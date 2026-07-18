@@ -95,16 +95,18 @@ interface ClassFeature {
   description: string;
   level: number;                        // level at which it is gained (1–20)
   effects: Effect[];
-  grantFeat?: Feat['category'];         // "choose a feat" feature; value = the category offered
 }
 ```
 
 "What does this class have at level N?" is `features.filter(f => f.level <= N)`;
 subclass features fold in the same way. A feature is only listed on the derived
 sheet when it isn't already represented elsewhere: features that `grantAbility`
-appear under Actions, and `grantFeat` features are represented by the chosen feat
-in the Feats section (whose effects are already folded in — e.g. Archery's bonus
-into the attack), so neither is shown as its own feature card.
+appear under Actions, and features with a `grantFeat` effect are represented by
+the chosen feat in the Feats section (whose effects are already folded in — e.g.
+Archery's bonus into the attack), so neither is shown as its own feature card. The
+Ability Score Improvement feat is the exception — it carries only an
+`abilityScoreChoice`, so its increase folds into the ability totals and it is left
+off the Feats section rather than listed as a card.
 
 ### Species, Subspecies & trait — [`species/`](../src/types/species)
 
@@ -149,14 +151,16 @@ interface Background {
 }
 ```
 
-### Feat — [`feat.ts`](../src/types/feat.ts)
+### Feat — [`feat/`](../src/types/feat)
 
 ```ts
+type FeatCategory = 'origin' | 'general' | 'fighting-style' | 'epic-boon';
+
 interface Feat {
   id: string;
   name: string;
   description: string;
-  category: 'origin' | 'general' | 'fighting-style' | 'epic-boon';
+  category: FeatCategory;               // also names the category a grantFeat effect offers
   prerequisite?: string;                // human-readable, not yet machine-checked
   effects: Effect[];
 }
@@ -176,6 +180,7 @@ type Effect =
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
+  | { kind: 'grantFeat'; category: FeatCategory }                           // "choose a feat" — value = the category offered
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };
 ```
 
@@ -292,10 +297,9 @@ graph TD
 ## Importing
 
 Types live under `src/types/`, **one type per file**. Related types are grouped
-into folders — `common/`, `character/`, `item/`, `class/`, `species/`, `effect/` —
-each with a barrel `index.ts`; the single-type entities (`background.ts`,
-`feat.ts`) sit at the top level. `src/types/index.ts` re-exports the commonly
-used types:
+into folders — `common/`, `character/`, `item/`, `class/`, `species/`, `effect/`,
+`feat/` — each with a barrel `index.ts`; the single-type entities (`background.ts`)
+sit at the top level. `src/types/index.ts` re-exports the commonly used types:
 
 ```ts
 import type { Character, Feat, Effect, Choice } from '../types';

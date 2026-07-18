@@ -19,8 +19,10 @@ type model. What exists today:
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability scores with chosen and feat increases folded in (capped
   at 20) and their modifiers, proficiency bonus, hit points, skill modifiers, the
-  character's feats, the features at level that aren't already shown as an ability
-  or a granted feat, abilities grouped by activation cost with level-scaled uses
+  character's feats (the Ability Score Improvement feat folds into the ability
+  totals rather than appearing as a card), the features at level that aren't
+  already shown as an ability or a granted feat, abilities grouped by activation
+  cost with level-scaled uses
   resolved against class level, and weapon attacks with their to-hit and damage
   (feat `attackRollBonus` effects fold into the to-hit).
 - **UI** (`src/pages/`, `src/components/`) — a dashboard listing characters, and a

@@ -101,12 +101,13 @@ interface ClassFeature {
 "What does this class have at level N?" is `features.filter(f => f.level <= N)`;
 subclass features fold in the same way. A feature is only listed on the derived
 sheet when it isn't already represented elsewhere: features that `grantAbility`
-appear under Actions, and features with a `grantFeat` effect are represented by
-the chosen feat in the Feats section (whose effects are already folded in — e.g.
-Archery's bonus into the attack), so neither is shown as its own feature card. The
-Ability Score Improvement feat is the exception — it carries only an
-`abilityScoreChoice`, so its increase folds into the ability totals and it is left
-off the Feats section rather than listed as a card.
+appear under Actions, features with a `grantFeat` effect are represented by the
+chosen feat in the Feats section (whose effects are already folded in — e.g.
+Archery's bonus into the attack), and a feature with a `grantSubclass` effect is
+replaced by the chosen subclass's own features (folded in by `subclassId`), so none
+of them is shown as its own feature card. The Ability Score Improvement feat is the
+exception — it carries only an `abilityScoreChoice`, so its increase folds into the
+ability totals and it is left off the Feats section rather than listed as a card.
 
 ### Species, Subspecies & trait — [`species/`](../src/types/species)
 
@@ -181,6 +182,7 @@ type Effect =
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
   | { kind: 'grantFeat'; category: FeatCategory }                           // "choose a feat" — value = the category offered
+  | { kind: 'grantSubclass' }                                               // "choose a subclass" — the class is implied by the feature
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };
 ```
 

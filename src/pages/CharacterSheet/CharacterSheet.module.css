@@ -20,6 +20,15 @@
   line-height: 1.6;
 }
 
+.subclass {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
 .section {
   margin-bottom: 2.5rem;
 }

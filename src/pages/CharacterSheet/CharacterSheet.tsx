@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
 import { FeatChoiceDialog } from '../../components/FeatChoiceDialog';
-import { classes } from '../../data/classes';
+import { SubclassChoiceDialog } from '../../components/SubclassChoiceDialog';
+import { classes, subclasses } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
-import { derive, grantedFeatCategory } from '../../lib/derive';
+import { derive, grantedFeatCategory, grantsSubclass } from '../../lib/derive';
 import type { Ability, Character } from '../../types';
 import type { ClassFeature } from '../../types/class';
 import type { Activation, Uses } from '../../types/effect';
@@ -13,15 +14,16 @@ import styles from './CharacterSheet.module.css';
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 
-function grantFeatFeatureGained(before: Character, after: Character): ClassFeature | undefined {
+function featuresGained(before: Character, after: Character): ClassFeature[] {
   const primary = after.classes[0];
   const previous = before.classes[0];
-  if (!primary || !previous) return undefined;
+  if (!primary || !previous) return [];
   const definition = classes.find((entry) => entry.id === primary.classId);
-  if (!definition) return undefined;
-  return definition.features.find(
-    (feature) =>
-      grantedFeatCategory(feature) && feature.level > previous.level && feature.level <= primary.level,
+  const subclass = primary.subclassId
+    ? subclasses.find((entry) => entry.id === primary.subclassId)
+    : undefined;
+  return [...(definition?.features ?? []), ...(subclass?.features ?? [])].filter(
+    (feature) => feature.level > previous.level && feature.level <= primary.level,
   );
 }
 
@@ -101,8 +103,16 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
   const [pending, setPending] = useState<{ character: Character; feature: ClassFeature } | null>(
     null,
   );
-  const sheet = derive(character, classes, weapons, feats);
+  const [pendingSubclass, setPendingSubclass] = useState<{
+    character: Character;
+    feature: ClassFeature;
+  } | null>(null);
+  const sheet = derive(character, classes, weapons, feats, subclasses);
   const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
+  const subclassLine = sheet.classes
+    .map((entry) => entry.subclass)
+    .filter((name): name is string => Boolean(name))
+    .join(' / ');
   const canLevelUp = sheet.level < 20;
 
   const pendingOptions = pending
@@ -113,6 +123,10 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
       )
     : [];
 
+  const pendingSubclassOptions = pendingSubclass
+    ? subclasses.filter((entry) => entry.classId === pendingSubclass.character.classes[0]?.classId)
+    : [];
+
   function levelUp() {
     const next: Character = {
       ...character,
@@ -120,15 +134,30 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
         index === 0 ? { ...entry, level: entry.level + 1 } : entry,
       ),
     };
-    const feature = grantFeatFeatureGained(character, next);
-    const options = feature
-      ? feats.filter((feat) => feat.category === grantedFeatCategory(feature) && !next.featIds.includes(feat.id))
+    const gained = featuresGained(character, next);
+
+    const subclassFeature = gained.find(grantsSubclass);
+    const subclassOptions = subclassFeature
+      ? subclasses.filter((entry) => entry.classId === next.classes[0]?.classId)
       : [];
-    if (feature && options.length > 0) {
-      setPending({ character: next, feature });
-    } else {
-      setCharacter(next);
+    if (subclassFeature && subclassOptions.length > 0) {
+      setPendingSubclass({ character: next, feature: subclassFeature });
+      return;
     }
+
+    const featFeature = gained.find((feature) => grantedFeatCategory(feature));
+    const featOptions = featFeature
+      ? feats.filter(
+          (feat) =>
+            feat.category === grantedFeatCategory(featFeature) && !next.featIds.includes(feat.id),
+        )
+      : [];
+    if (featFeature && featOptions.length > 0) {
+      setPending({ character: next, feature: featFeature });
+      return;
+    }
+
+    setCharacter(next);
   }
 
   function chooseFeat(featId: string, increases?: Partial<Record<Ability, number>>) {
@@ -145,6 +174,17 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
       abilityScoreIncreases: merged,
     });
     setPending(null);
+  }
+
+  function chooseSubclass(subclassId: string) {
+    if (!pendingSubclass) return;
+    setCharacter({
+      ...pendingSubclass.character,
+      classes: pendingSubclass.character.classes.map((entry, index) =>
+        index === 0 ? { ...entry, subclassId } : entry,
+      ),
+    });
+    setPendingSubclass(null);
   }
 
   return (
@@ -168,6 +208,7 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
       <header className={styles.header}>
         <h1 className={styles.title}>{sheet.name}</h1>
         <p className={styles.subtitle}>{summary}</p>
+        {subclassLine ? <p className={styles.subclass}>{subclassLine}</p> : null}
       </header>
 
       <section className={styles.section}>
@@ -317,6 +358,14 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
         abilityScores={sheet.abilityScores}
         onChoose={chooseFeat}
         onCancel={() => setPending(null)}
+      />
+    ) : null}
+    {pendingSubclass ? (
+      <SubclassChoiceDialog
+        featureName={pendingSubclass.feature.name}
+        options={pendingSubclassOptions}
+        onChoose={chooseSubclass}
+        onCancel={() => setPendingSubclass(null)}
       />
     ) : null}
     </>

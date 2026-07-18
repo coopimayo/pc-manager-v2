@@ -60,6 +60,11 @@ describe('App', () => {
     const levelUp = () => screen.getByRole('button', { name: 'Level Up' });
     await user.click(levelUp());
     await user.click(levelUp());
+
+    expect(screen.getByText('Choose a subclass.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Champion/ }));
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+
     await user.click(levelUp());
 
     expect(screen.getByText('Choose a feat to gain.')).toBeInTheDocument();
@@ -81,6 +86,25 @@ describe('App', () => {
     expect(within(abilityScores).getByText('+4')).toBeInTheDocument();
   });
 
+  it('prompts for a subclass at level 3 and folds in its features', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Bram Stonefist/ }));
+    const levelUp = () => screen.getByRole('button', { name: 'Level Up' });
+    await user.click(levelUp());
+    await user.click(levelUp());
+
+    expect(screen.getByText('Choose a subclass.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Champion/ }));
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    expect(screen.queryByText('Choose a subclass.')).not.toBeInTheDocument();
+    expect(screen.getByText('Fighter 3')).toBeInTheDocument();
+    expect(screen.getByText('Improved Critical')).toBeInTheDocument();
+    expect(screen.getByText('Remarkable Athlete')).toBeInTheDocument();
+  });
+
   it('aborts the level-up when the feat choice is cancelled', async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -89,6 +113,8 @@ describe('App', () => {
     const levelUp = () => screen.getByRole('button', { name: 'Level Up' });
     await user.click(levelUp());
     await user.click(levelUp());
+    await user.click(screen.getByRole('button', { name: /Champion/ }));
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
     await user.click(levelUp());
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));

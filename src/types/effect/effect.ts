@@ -1,4 +1,5 @@
 import type { Ability, LevelScaled, Skill } from '../common';
+import type { FeatCategory } from '../feat/feat-category';
 import type { AttackType } from '../item';
 import type { Activation } from './activation';
 import type { Uses } from './uses';
@@ -10,4 +11,5 @@ export type Effect =
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
+  | { kind: 'grantFeat'; category: FeatCategory }
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };

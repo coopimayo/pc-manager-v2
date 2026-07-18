@@ -1,4 +1,4 @@
-import type { Ability, Character, Die, Effect, Feat, LevelScaled, Skill } from '../types';
+import type { Ability, Character, Die, Effect, Feat, FeatCategory, LevelScaled, Skill } from '../types';
 import type { Class, ClassFeature } from '../types/class';
 import type { Weapon } from '../types/item';
 import type {
@@ -14,6 +14,7 @@ import { skillAbilities } from './skill-abilities';
 
 type GrantAbility = Extract<Effect, { kind: 'grantAbility' }>;
 type GrantWeaponMastery = Extract<Effect, { kind: 'grantWeaponMastery' }>;
+type GrantFeat = Extract<Effect, { kind: 'grantFeat' }>;
 type AttackRollBonus = Extract<Effect, { kind: 'attackRollBonus' }>;
 
 interface TakenFeature {
@@ -42,6 +43,11 @@ function dieSize(die: Die): number {
 
 function grantsAbility(feature: ClassFeature): boolean {
   return feature.effects.some((effect) => effect.kind === 'grantAbility');
+}
+
+export function grantedFeatCategory(feature: ClassFeature): FeatCategory | undefined {
+  const effect = feature.effects.find((e): e is GrantFeat => e.kind === 'grantFeat');
+  return effect?.category;
 }
 
 function featNote(feat: Feat): string | undefined {
@@ -218,7 +224,7 @@ export function derive(
     hitPoints: hitPointsFor(character, classes, abilityModifiers.con),
     skills,
     features: features
-      .filter(({ feature }) => !grantsAbility(feature) && !feature.grantFeat)
+      .filter(({ feature }) => !grantsAbility(feature) && !grantedFeatCategory(feature))
       .map(sheetFeature),
     feats: characterFeats,
     abilities,

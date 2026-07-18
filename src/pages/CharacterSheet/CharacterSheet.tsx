@@ -4,7 +4,7 @@ import { FeatChoiceDialog } from '../../components/FeatChoiceDialog';
 import { classes } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
-import { derive } from '../../lib/derive';
+import { derive, grantedFeatCategory } from '../../lib/derive';
 import type { Ability, Character } from '../../types';
 import type { ClassFeature } from '../../types/class';
 import type { Activation, Uses } from '../../types/effect';
@@ -21,7 +21,7 @@ function grantFeatFeatureGained(before: Character, after: Character): ClassFeatu
   if (!definition) return undefined;
   return definition.features.find(
     (feature) =>
-      feature.grantFeat && feature.level > previous.level && feature.level <= primary.level,
+      grantedFeatCategory(feature) && feature.level > previous.level && feature.level <= primary.level,
   );
 }
 
@@ -108,7 +108,7 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
   const pendingOptions = pending
     ? feats.filter(
         (feat) =>
-          feat.category === pending.feature.grantFeat &&
+          feat.category === grantedFeatCategory(pending.feature) &&
           !pending.character.featIds.includes(feat.id),
       )
     : [];
@@ -122,7 +122,7 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
     };
     const feature = grantFeatFeatureGained(character, next);
     const options = feature
-      ? feats.filter((feat) => feat.category === feature.grantFeat && !next.featIds.includes(feat.id))
+      ? feats.filter((feat) => feat.category === grantedFeatCategory(feature) && !next.featIds.includes(feat.id))
       : [];
     if (feature && options.length > 0) {
       setPending({ character: next, feature });

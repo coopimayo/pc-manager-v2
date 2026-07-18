@@ -1,5 +1,4 @@
 import type { Effect } from '../effect';
-import type { Feat } from '../feat';
 
 export interface ClassFeature {
   id: string;
@@ -7,5 +6,4 @@ export interface ClassFeature {
   description: string;
   level: number;
   effects: Effect[];
-  grantFeat?: Feat['category'];
 }

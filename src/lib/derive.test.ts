@@ -116,6 +116,35 @@ describe('derive', () => {
     });
   });
 
+  describe('ability score increases', () => {
+    it('folds chosen increases into the score and its modifier', () => {
+      const boosted = derive({ ...exampleFighter, abilityScoreIncreases: { str: 2 } }, [fighter]);
+      expect(boosted.abilityScores.str).toBe(18);
+      expect(boosted.abilityModifiers.str).toBe(4);
+    });
+
+    it('spreads a split increase across two abilities', () => {
+      const boosted = derive(
+        { ...exampleFighter, abilityScoreIncreases: { str: 1, con: 1 } },
+        [fighter],
+      );
+      expect(boosted.abilityScores.str).toBe(17);
+      expect(boosted.abilityScores.con).toBe(16);
+    });
+
+    it('caps a boosted score at 20', () => {
+      const capped = derive(
+        {
+          ...exampleFighter,
+          abilityScores: { ...exampleFighter.abilityScores, str: 19 },
+          abilityScoreIncreases: { str: 2 },
+        },
+        [fighter],
+      );
+      expect(capped.abilityScores.str).toBe(20);
+    });
+  });
+
   describe('level scaling', () => {
     const atLevel = (level: number) =>
       derive({ ...exampleFighter, classes: [{ classId: 'fighter', level }] }, [fighter]);

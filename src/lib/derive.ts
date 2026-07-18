@@ -58,6 +58,26 @@ function featNote(feat: Feat): string | undefined {
   return applied.length ? `Already included in your totals: ${applied.join(', ')}.` : undefined;
 }
 
+function abilityScoresFor(character: Character, feats: Feat[]): Record<Ability, number> {
+  const totals: Record<Ability, number> = { ...character.abilityScores };
+  const add = (ability: Ability, amount: number) => {
+    totals[ability] = Math.min(20, totals[ability] + amount);
+  };
+
+  const chosen = character.abilityScoreIncreases ?? {};
+  (Object.keys(chosen) as Ability[]).forEach((ability) => add(ability, chosen[ability] ?? 0));
+
+  character.featIds.forEach((id) => {
+    feats
+      .find((feat) => feat.id === id)
+      ?.effects.forEach((effect) => {
+        if (effect.kind === 'abilityScoreIncrease') add(effect.ability, effect.amount);
+      });
+  });
+
+  return totals;
+}
+
 function featuresFor(character: Character, classes: Class[]): TakenFeature[] {
   return character.classes.flatMap((taken) => {
     const found = classes.find((entry) => entry.id === taken.classId);
@@ -143,13 +163,14 @@ export function derive(
   const level = character.classes.reduce((total, taken) => total + taken.level, 0);
   const bonus = proficiencyBonus(level);
 
+  const abilityScores = abilityScoresFor(character, feats);
   const abilityModifiers: Record<Ability, number> = {
-    str: abilityModifier(character.abilityScores.str),
-    dex: abilityModifier(character.abilityScores.dex),
-    con: abilityModifier(character.abilityScores.con),
-    int: abilityModifier(character.abilityScores.int),
-    wis: abilityModifier(character.abilityScores.wis),
-    cha: abilityModifier(character.abilityScores.cha),
+    str: abilityModifier(abilityScores.str),
+    dex: abilityModifier(abilityScores.dex),
+    con: abilityModifier(abilityScores.con),
+    int: abilityModifier(abilityScores.int),
+    wis: abilityModifier(abilityScores.wis),
+    cha: abilityModifier(abilityScores.cha),
   };
 
   const skills: SheetSkill[] = (Object.keys(skillAbilities) as Skill[]).map((skill) => {
@@ -192,7 +213,7 @@ export function derive(
     classes: taken,
     level,
     proficiencyBonus: bonus,
-    abilityScores: character.abilityScores,
+    abilityScores,
     abilityModifiers,
     hitPoints: hitPointsFor(character, classes, abilityModifiers.con),
     skills,

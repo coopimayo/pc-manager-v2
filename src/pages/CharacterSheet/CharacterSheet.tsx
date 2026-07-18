@@ -131,9 +131,19 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
     }
   }
 
-  function chooseFeat(featId: string) {
+  function chooseFeat(featId: string, increases?: Partial<Record<Ability, number>>) {
     if (!pending) return;
-    setCharacter({ ...pending.character, featIds: [...pending.character.featIds, featId] });
+    const merged: Partial<Record<Ability, number>> = { ...pending.character.abilityScoreIncreases };
+    if (increases) {
+      (Object.keys(increases) as Ability[]).forEach((ability) => {
+        merged[ability] = (merged[ability] ?? 0) + (increases[ability] ?? 0);
+      });
+    }
+    setCharacter({
+      ...pending.character,
+      featIds: [...pending.character.featIds, featId],
+      abilityScoreIncreases: merged,
+    });
     setPending(null);
   }
 
@@ -304,6 +314,7 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
       <FeatChoiceDialog
         featureName={pending.feature.name}
         options={pendingOptions}
+        abilityScores={sheet.abilityScores}
         onChoose={chooseFeat}
         onCancel={() => setPending(null)}
       />

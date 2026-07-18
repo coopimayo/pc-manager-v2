@@ -6,7 +6,7 @@ export const abilityScoreImprovement: Feat = {
   description:
     'Increase one ability score by 2, or increase two ability scores by 1 each. You cannot raise a score above 20.',
   category: 'general',
-  effects: [],
+  effects: [{ kind: 'abilityScoreChoice', points: 2, maxPerAbility: 2 }],
 };
 
 export const alert: Feat = {

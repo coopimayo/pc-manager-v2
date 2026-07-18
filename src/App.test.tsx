@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -65,12 +65,20 @@ describe('App', () => {
     expect(screen.getByText('Choose a feat to gain.')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Ability Score Improvement/ }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
     await user.click(screen.getByRole('button', { name: 'Confirm' }));
 
     expect(screen.queryByText('Choose a feat to gain.')).not.toBeInTheDocument();
     expect(screen.getByText('Fighter 4')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Feats' })).toBeInTheDocument();
     expect(screen.getByText('Ability Score Improvement')).toBeInTheDocument();
+
+    const abilityScores = screen
+      .getByRole('heading', { name: 'Ability Scores' })
+      .closest('section') as HTMLElement;
+    expect(within(abilityScores).getByText('18')).toBeInTheDocument();
+    expect(within(abilityScores).getByText('+4')).toBeInTheDocument();
   });
 
   it('aborts the level-up when the feat choice is cancelled', async () => {

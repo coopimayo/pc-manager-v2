@@ -94,7 +94,7 @@ interface ClassFeature {
   description: string;
   level: number;                        // level at which it is gained (1–20)
   effects: Effect[];
-  grantFeat?: boolean;                  // a "choose a feat" feature (Fighting Style, ASI)
+  grantFeat?: Feat['category'];         // "choose a feat" feature; value = the category offered
 }
 ```
 

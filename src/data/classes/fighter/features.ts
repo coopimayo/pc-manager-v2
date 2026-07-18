@@ -7,7 +7,7 @@ export const fighterFeatures: ClassFeature[] = [
     description: 'You gain a Fighting Style feat of your choice.',
     level: 1,
     effects: [],
-    grantFeat: true,
+    grantFeat: 'fighting-style',
   },
   {
     id: 'fighter-second-wind',
@@ -83,7 +83,7 @@ export const fighterFeatures: ClassFeature[] = [
       'You gain the Ability Score Improvement feat or another feat of your choice for which you qualify.',
     level: 4,
     effects: [],
-    grantFeat: true,
+    grantFeat: 'general',
   },
   {
     id: 'fighter-extra-attack',

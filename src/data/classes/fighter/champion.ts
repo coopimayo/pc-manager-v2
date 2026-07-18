@@ -46,5 +46,21 @@ export const champion: Subclass = {
       level: 15,
       effects: [],
     },
+    {
+      id: 'champion-defy-death',
+      name: 'Defy Death',
+      description:
+        'You have Advantage on Death Saving Throws. Moreover, when you roll 18–20 on a Death Saving Throw, you gain the benefit of rolling a 20 on it.',
+      level: 18,
+      effects: [],
+    },
+    {
+      id: 'champion-heroic-rally',
+      name: 'Heroic Rally',
+      description:
+        'At the start of each of your turns, you regain Hit Points equal to 5 plus your Constitution modifier if you are Bloodied and have at least 1 Hit Point.',
+      level: 18,
+      effects: [],
+    },
   ],
 };

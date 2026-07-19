@@ -213,6 +213,49 @@
   margin-bottom: 0.35rem;
 }
 
+.cardHidden {
+  opacity: 0.55;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.visibilityToggle {
+  padding: 0.15rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.visibilityToggle:hover {
+  color: inherit;
+}
+
+.hiddenToggle {
+  margin-top: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.hiddenToggle:hover {
+  color: inherit;
+}
+
 .badge {
   padding: 0.15rem 0.5rem;
   border-radius: 999px;

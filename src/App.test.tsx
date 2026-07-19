@@ -28,7 +28,8 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
 
     expect(screen.getByRole('heading', { name: 'Vera Quickblade' })).toBeInTheDocument();
-    expect(screen.getByText('Action Surge')).toBeInTheDocument();
+    const actions = screen.getByRole('heading', { name: 'Actions' }).closest('section') as HTMLElement;
+    expect(within(actions).getByText('Action Surge')).toBeInTheDocument();
     expect(screen.getByText('Free')).toBeInTheDocument();
     expect(screen.getByText('Longbow')).toBeInTheDocument();
     expect(screen.getByText('1d8 + 3 piercing')).toBeInTheDocument();
@@ -76,8 +77,10 @@ describe('App', () => {
 
     expect(screen.queryByText('Choose a feat to gain.')).not.toBeInTheDocument();
     expect(screen.getByText(/Fighter 4/)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Feats' })).toBeInTheDocument();
-    expect(screen.queryByText('Ability Score Improvement')).not.toBeInTheDocument();
+    const featsSection = screen
+      .getByRole('heading', { name: 'Feats' })
+      .closest('section') as HTMLElement;
+    expect(within(featsSection).queryByText('Ability Score Improvement')).not.toBeInTheDocument();
 
     const abilityScores = screen
       .getByRole('heading', { name: 'Ability Scores' })
@@ -156,7 +159,10 @@ describe('App', () => {
     expect(screen.getByText('Human · Soldier · Fighter 1')).toBeInTheDocument();
     expect(screen.getByText('Greatsword')).toBeInTheDocument();
     expect(screen.getByText('2d6 + 3 slashing')).toBeInTheDocument();
-    expect(screen.getByText('Second Wind')).toBeInTheDocument();
+    const actionsSection = screen
+      .getByRole('heading', { name: 'Actions' })
+      .closest('section') as HTMLElement;
+    expect(within(actionsSection).getByText('Second Wind')).toBeInTheDocument();
     expect(screen.getByText('Archery')).toBeInTheDocument();
     expect(screen.getByText('Savage Attacker')).toBeInTheDocument();
     expect(screen.getByText('Resourceful')).toBeInTheDocument();
@@ -260,6 +266,44 @@ describe('App', () => {
       .closest('section') as HTMLElement;
     const arcana = within(sheetSkills).getByText('Arcana').closest('li') as HTMLElement;
     expect(arcana).toHaveTextContent('+2');
+  });
+
+  it('hides a feature on request and restores it from the hidden list', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
+    const features = screen
+      .getByRole('heading', { name: 'Features' })
+      .closest('section') as HTMLElement;
+
+    await user.click(within(features).getByRole('button', { name: 'Hide Second Wind' }));
+    expect(within(features).queryByText('Second Wind')).not.toBeInTheDocument();
+
+    await user.click(within(features).getByRole('button', { name: 'Show 1 hidden' }));
+    expect(within(features).getByText('Second Wind')).toBeInTheDocument();
+
+    await user.click(within(features).getByRole('button', { name: 'Show Second Wind' }));
+    expect(within(features).queryByRole('button', { name: /hidden/ })).not.toBeInTheDocument();
+    expect(within(features).getByText('Second Wind')).toBeInTheDocument();
+  });
+
+  it('hides a species trait behind the hidden toggle', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Bram Stonefist/ }));
+    const traits = screen
+      .getByRole('heading', { name: 'Traits' })
+      .closest('section') as HTMLElement;
+
+    await user.click(within(traits).getByRole('button', { name: 'Hide Skillful' }));
+    expect(within(traits).queryByText('Skillful')).not.toBeInTheDocument();
+    expect(within(traits).getByText('Resourceful')).toBeInTheDocument();
+
+    await user.click(within(traits).getByRole('button', { name: 'Show 1 hidden' }));
+    await user.click(within(traits).getByRole('button', { name: 'Show Skillful' }));
+    expect(within(traits).getByText('Skillful')).toBeInTheDocument();
   });
 
   it('returns to the dashboard when creation is cancelled', async () => {

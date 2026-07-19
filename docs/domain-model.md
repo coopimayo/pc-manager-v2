@@ -58,6 +58,8 @@ interface Character {
   skillProficiencies: Skill[];          // the skills actually chosen
   featIds: string[];
   weaponIds: string[];                  // → Weapon, the weapons carried
+  hiddenFeatureIds?: string[];          // feature cards the player chose to hide
+  hiddenTraitIds?: string[];            // trait cards the player chose to hide
 }
 ```
 
@@ -99,21 +101,24 @@ interface ClassFeature {
 ```
 
 "What does this class have at level N?" is `features.filter(f => f.level <= N)`;
-subclass features fold in the same way. A feature is only listed on the derived
-sheet when it isn't already represented elsewhere: features that `grantAbility`
-appear under Actions, features with a `grantFeat` effect are represented by the
+subclass features fold in the same way. Every taken feature is listed on the
+derived sheet, even when its effects also surface elsewhere: a `grantAbility`
+feature also appears under Actions, a `grantFeat` feature sits alongside the
 chosen feat in the Feats section (whose effects are already folded in — e.g.
-Archery's bonus into the attack), and a feature with a `grantSubclass` effect is
-replaced by the chosen subclass's own features (folded in by `subclassId`), so none
-of them is shown as its own feature card. The Ability Score Improvement feat is the
-exception — it carries only an `abilityScoreChoice`, so its increase folds into the
-ability totals and it is left off the Feats section rather than listed as a card.
+Archery's bonus into the attack), and a `grantSubclass` feature alongside the
+chosen subclass's own features (folded in by `subclassId`). The sheet never
+decides to drop a card; instead each derived feature and trait carries a
+`hidden` flag driven by `Character.hiddenFeatureIds` / `hiddenTraitIds`, so the
+player chooses which cards to tuck away. The Ability Score Improvement feat is
+the one thing still omitted automatically — it carries only an
+`abilityScoreChoice`, so its increase folds into the ability totals and it is
+left off the Feats section rather than listed as a card.
 
 A feature with a `replaceFeature` effect supersedes the feature it names: once both
 are gained the older one drops out of the derivation entirely, so an upgrade like
 the Champion's Superior Critical shows in place of Improved Critical rather than
-alongside it. (The feature carrying the effect is still shown — unlike the grant\*
-effects, it isn't represented elsewhere.)
+alongside it. This is not hiding — the character no longer has the replaced
+feature at all.
 
 ### Species, Subspecies & trait — [`species/`](../src/types/species)
 

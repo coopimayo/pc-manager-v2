@@ -4,4 +4,5 @@ export interface SheetFeature {
   description: string;
   level: number;
   detail?: string;
+  hidden: boolean;
 }

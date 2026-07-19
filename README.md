@@ -145,7 +145,6 @@ it:
   `grantFeat` for an origin feat, but nothing prompts for it yet. The creator
   also ignores the background's starting equipment and tool proficiency.
 - `ClassFeature` and a granted ability each carry their own name and
-  description, so Second Wind's name and text are authored twice. `derive`
-  drops a feature from `Sheet.features` once it grants an ability, which stops
-  the sheet repeating itself but means the feature's fuller wording — the part
-  covering Tactical Mind's interaction, say — never reaches the page.
+  description, so Second Wind's name and text are authored twice. Every feature
+  now reaches `Sheet.features`, so an ability-granting feature shows under both
+  Actions and Features until the player hides the card they don't want.

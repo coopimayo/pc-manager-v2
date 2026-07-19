@@ -58,6 +58,60 @@ function UsesTracker({ name, uses, remaining, onChange }: UsesTrackerProps) {
   );
 }
 
+interface HideableCardsProps<Item extends { id: string; name: string; description: string; hidden: boolean }> {
+  items: Item[];
+  badge: (item: Item) => string;
+  meta?: (item: Item) => string | undefined;
+  onToggleHidden: (id: string) => void;
+}
+
+function HideableCards<Item extends { id: string; name: string; description: string; hidden: boolean }>({
+  items,
+  badge,
+  meta,
+  onToggleHidden,
+}: HideableCardsProps<Item>) {
+  const [showHidden, setShowHidden] = useState(false);
+  const hiddenCount = items.filter((item) => item.hidden).length;
+  const shown = showHidden ? items : items.filter((item) => !item.hidden);
+
+  return (
+    <>
+      <ul className={styles.cards}>
+        {shown.map((item) => (
+          <li key={item.id} className={item.hidden ? `${styles.card} ${styles.cardHidden}` : styles.card}>
+            <div className={styles.cardHead}>
+              <strong>{item.name}</strong>
+              <span className={styles.cardActions}>
+                <span className={styles.badge}>{badge(item)}</span>
+                <button
+                  type="button"
+                  className={styles.visibilityToggle}
+                  aria-label={`${item.hidden ? 'Show' : 'Hide'} ${item.name}`}
+                  onClick={() => onToggleHidden(item.id)}
+                >
+                  {item.hidden ? 'Show' : 'Hide'}
+                </button>
+              </span>
+            </div>
+            <p className={styles.cardBody}>{item.description}</p>
+            {meta?.(item) ? <p className={styles.cardMeta}>{meta(item)}</p> : null}
+          </li>
+        ))}
+      </ul>
+      {hiddenCount > 0 ? (
+        <button
+          type="button"
+          className={styles.hiddenToggle}
+          onClick={() => setShowHidden((current) => !current)}
+        >
+          {showHidden ? `Hide ${hiddenCount} hidden` : `Show ${hiddenCount} hidden`}
+        </button>
+      ) : null}
+    </>
+  );
+}
+
 interface CharacterSheetProps {
   character: Character;
   onBack: () => void;
@@ -146,6 +200,17 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
       skillProficiencies: [...new Set([...pending.character.skillProficiencies, ...(skills ?? [])])],
     });
     setPending(null);
+  }
+
+  function toggleHidden(key: 'hiddenFeatureIds' | 'hiddenTraitIds') {
+    return (id: string) =>
+      setCharacter((current) => {
+        const ids = current[key] ?? [];
+        return {
+          ...current,
+          [key]: ids.includes(id) ? ids.filter((entry) => entry !== id) : [...ids, id],
+        };
+      });
   }
 
   function chooseSubclass(subclassId: string) {
@@ -291,34 +356,22 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Features</h2>
-        <ul className={styles.cards}>
-          {sheet.features.map((feature) => (
-            <li key={feature.id} className={styles.card}>
-              <div className={styles.cardHead}>
-                <strong>{feature.name}</strong>
-                <span className={styles.badge}>Level {feature.level}</span>
-              </div>
-              <p className={styles.cardBody}>{feature.description}</p>
-              {feature.detail ? <p className={styles.cardMeta}>{feature.detail}</p> : null}
-            </li>
-          ))}
-        </ul>
+        <HideableCards
+          items={sheet.features}
+          badge={(feature) => `Level ${feature.level}`}
+          meta={(feature) => feature.detail}
+          onToggleHidden={toggleHidden('hiddenFeatureIds')}
+        />
       </section>
 
       {sheet.traits.length > 0 ? (
         <section className={styles.section}>
           <h2 className={styles.heading}>Traits</h2>
-          <ul className={styles.cards}>
-            {sheet.traits.map((trait) => (
-              <li key={trait.id} className={styles.card}>
-                <div className={styles.cardHead}>
-                  <strong>{trait.name}</strong>
-                  <span className={styles.badge}>{sheet.species}</span>
-                </div>
-                <p className={styles.cardBody}>{trait.description}</p>
-              </li>
-            ))}
-          </ul>
+          <HideableCards
+            items={sheet.traits}
+            badge={() => sheet.species ?? ''}
+            onToggleHidden={toggleHidden('hiddenTraitIds')}
+          />
         </section>
       ) : null}
 

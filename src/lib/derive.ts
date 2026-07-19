@@ -54,10 +54,6 @@ function dieSize(die: Die): number {
   return Number(die.slice(1));
 }
 
-function grantsAbility(feature: ClassFeature): boolean {
-  return feature.effects.some((effect) => effect.kind === 'grantAbility');
-}
-
 export function grantedFeatCategory(feature: ClassFeature): FeatCategory | undefined {
   return effectOfKind(feature.effects, 'grantFeat')?.category;
 }
@@ -150,11 +146,11 @@ function featuresFor(taken: ResolvedClass[]): TakenFeature[] {
   return all.filter(({ feature }) => !replaced.has(feature.id));
 }
 
-function sheetFeature({ feature, classLevel }: TakenFeature): SheetFeature {
+function sheetFeature({ feature, classLevel }: TakenFeature, hidden: boolean): SheetFeature {
   const { id, name, description, level } = feature;
   const mastery = effectOfKind(feature.effects, 'grantWeaponMastery');
   const detail = mastery ? `${resolveScaled(mastery.count, classLevel)} weapons` : undefined;
-  return { id, name, description, level, detail };
+  return { id, name, description, level, detail, hidden };
 }
 
 function hitPointsFor(taken: ResolvedClass[], conModifier: number): number {
@@ -273,6 +269,8 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
 
   const taken = resolveClasses(character, classes, subclasses);
   const features = featuresFor(taken);
+  const hiddenFeatureIds = new Set(character.hiddenFeatureIds ?? []);
+  const hiddenTraitIds = new Set(character.hiddenTraitIds ?? []);
 
   const abilities: SheetAbility[] = features.flatMap(({ feature, classLevel }) =>
     sheetAbilities(feature.effects, classLevel, bonus),
@@ -314,16 +312,14 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     abilityModifiers,
     hitPoints: hitPointsFor(taken, abilityModifiers.con) + hitPointMaxBonus,
     skills,
-    features: features
-      .filter(
-        ({ feature }) =>
-          !grantsAbility(feature) && !grantedFeatCategory(feature) && !grantsSubclass(feature),
-      )
-      .map(sheetFeature),
+    features: features.map((taken) =>
+      sheetFeature(taken, hiddenFeatureIds.has(taken.feature.id)),
+    ),
     traits: (chosenSpecies?.traits ?? []).map(({ id, name, description }) => ({
       id,
       name,
       description,
+      hidden: hiddenTraitIds.has(id),
     })),
     feats: characterFeats,
     abilities: [...abilities, ...sheetAbilities(featEffects, level, bonus)],

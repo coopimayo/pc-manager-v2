@@ -13,4 +13,6 @@ export interface Character {
   skillProficiencies: Skill[];
   featIds: string[];
   weaponIds: string[];
+  hiddenFeatureIds?: string[];
+  hiddenTraitIds?: string[];
 }

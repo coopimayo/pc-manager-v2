@@ -74,21 +74,27 @@ describe('derive', () => {
   });
 
   it('includes only features at or below the character level', () => {
-    expect(sheet.features.map((feature) => feature.name)).toEqual(['Weapon Mastery']);
+    expect(sheet.features.map((feature) => feature.name)).toEqual([
+      'Fighting Style',
+      'Second Wind',
+      'Weapon Mastery',
+    ]);
   });
 
-  it('omits features that surface as an ability, a granted feat, or a subclass choice', () => {
+  it('keeps ability-, feat-, and subclass-granting features on the sheet', () => {
     const level3 = derive(
       { ...exampleFighter, classes: [{ classId: 'fighter', level: 3 }] },
       { classes: [fighter] },
     );
 
     expect(level3.features.map((feature) => feature.name)).toEqual([
+      'Fighting Style',
+      'Second Wind',
       'Weapon Mastery',
+      'Action Surge',
       'Tactical Mind',
+      'Fighter Subclass',
     ]);
-    expect(level3.features.map((feature) => feature.name)).not.toContain('Fighting Style');
-    expect(level3.features.map((feature) => feature.name)).not.toContain('Fighter Subclass');
     expect(level3.abilities.map((ability) => ability.name)).toEqual(['Second Wind', 'Action Surge']);
   });
 
@@ -100,11 +106,39 @@ describe('derive', () => {
 
     expect(champion3.classes[0]?.subclass).toBe('Champion');
     expect(champion3.features.map((feature) => feature.name)).toEqual([
+      'Fighting Style',
+      'Second Wind',
       'Weapon Mastery',
+      'Action Surge',
       'Tactical Mind',
+      'Fighter Subclass',
       'Improved Critical',
       'Remarkable Athlete',
     ]);
+  });
+
+  describe('hiding', () => {
+    it('marks the features and traits the character has hidden', () => {
+      const withHidden = derive(
+        {
+          ...exampleFighter,
+          hiddenFeatureIds: ['fighter-second-wind'],
+          hiddenTraitIds: ['human-skillful'],
+        },
+        { classes: [fighter], species: [human] },
+      );
+
+      expect(
+        withHidden.features.filter((feature) => feature.hidden).map((feature) => feature.id),
+      ).toEqual(['fighter-second-wind']);
+      expect(
+        withHidden.traits.filter((trait) => trait.hidden).map((trait) => trait.id),
+      ).toEqual(['human-skillful']);
+    });
+
+    it('hides nothing by default', () => {
+      expect(sheet.features.some((feature) => feature.hidden)).toBe(false);
+    });
   });
 
   it('shows a feature it replaces until the upgrade is gained', () => {

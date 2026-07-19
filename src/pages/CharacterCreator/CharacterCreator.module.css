@@ -88,49 +88,6 @@
   border-color: var(--color-text-muted);
 }
 
-.options {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.option,
-.optionSelected {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  width: 100%;
-  padding: 0.75rem 0.9rem;
-  border: 1.5px solid transparent;
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.optionSelected {
-  border-color: var(--color-text);
-}
-
-.option:hover {
-  border-color: var(--color-text-muted);
-}
-
-.optionName {
-  font-weight: 600;
-}
-
-.optionDescription {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--color-text-muted);
-}
-
 .abilities {
   list-style: none;
   margin: 0;
@@ -174,77 +131,6 @@
 
 .allocation {
   margin-top: 1rem;
-}
-
-.bonusValue {
-  flex: 1;
-  font-variant-numeric: tabular-nums;
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-}
-
-.stepper {
-  display: flex;
-  gap: 0.35rem;
-}
-
-.step {
-  width: 1.75rem;
-  height: 1.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1.5px solid var(--color-text-muted);
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.step:hover:not(:disabled) {
-  border-color: var(--color-text);
-}
-
-.step:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.skillGrid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.toggle,
-.toggleSelected {
-  padding: 0.4rem 0.8rem;
-  border: 1.5px solid transparent;
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: inherit;
-  font: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.toggleSelected {
-  border-color: var(--color-text);
-  font-weight: 600;
-}
-
-.toggle:hover:not(:disabled) {
-  border-color: var(--color-text-muted);
-}
-
-.toggle:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .footer {

@@ -1,18 +1,20 @@
 import { useState } from 'react';
 
+import { AbilityAllocator } from '../../components/AbilityAllocator';
+import { OptionList } from '../../components/OptionList';
+import { SkillToggleGrid } from '../../components/SkillToggleGrid';
 import { backgrounds } from '../../data/backgrounds';
 import { classes } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
 import { species } from '../../data/species';
 import { abilityModifier, grantedFeatCategory } from '../../lib/derive';
+import { effectOfKind } from '../../lib/effects';
 import { signed, titleCase } from '../../lib/format';
 import { skillAbilities } from '../../lib/skill-abilities';
-import type { Ability, Character, Effect, Skill } from '../../types';
+import type { Ability, Character, Skill } from '../../types';
 import { describePackage, uniqueId } from './index';
 import styles from './CharacterCreator.module.css';
-
-type SkillProficiencyChoice = Extract<Effect, { kind: 'skillProficiencyChoice' }>;
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const allSkills = Object.keys(skillAbilities) as Skill[];
@@ -41,9 +43,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const chosenSpecies = species.find((entry) => entry.id === speciesId);
   const chosenBackground = backgrounds.find((entry) => entry.id === backgroundId);
   const backgroundFeat = feats.find((entry) => entry.id === chosenBackground?.featId);
-  const featSkillChoice = backgroundFeat?.effects.find(
-    (effect): effect is SkillProficiencyChoice => effect.kind === 'skillProficiencyChoice',
-  );
+  const featSkillChoice = effectOfKind(backgroundFeat?.effects ?? [], 'skillProficiencyChoice');
   const chosen = classes.find((entry) => entry.id === classId);
   const featFeatures = (chosen?.features ?? []).filter(
     (feature) => feature.level === 1 && grantedFeatCategory(feature),
@@ -84,10 +84,6 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
     setFeatChoices({});
   }
 
-  function stepBonus(ability: Ability, delta: number) {
-    setBonuses((current) => ({ ...current, [ability]: (current[ability] ?? 0) + delta }));
-  }
-
   function assignScore(ability: Ability, raw: string) {
     setScores((current) => {
       const next = { ...current };
@@ -95,18 +91,6 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
       else next[ability] = Number(raw);
       return next;
     });
-  }
-
-  function toggleSkill(skill: Skill) {
-    setSkills((current) =>
-      current.includes(skill) ? current.filter((entry) => entry !== skill) : [...current, skill],
-    );
-  }
-
-  function toggleFeatSkill(skill: Skill) {
-    setFeatSkills((current) =>
-      current.includes(skill) ? current.filter((entry) => entry !== skill) : [...current, skill],
-    );
   }
 
   function create() {
@@ -160,83 +144,25 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Species</h2>
-        <ul className={styles.options}>
-          {species.map((entry) => {
-            const selected = entry.id === speciesId;
-            return (
-              <li key={entry.id}>
-                <button
-                  type="button"
-                  className={selected ? styles.optionSelected : styles.option}
-                  aria-pressed={selected}
-                  onClick={() => setSpeciesId(entry.id)}
-                >
-                  <span className={styles.optionName}>{entry.name}</span>
-                  <span className={styles.optionDescription}>{entry.description}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <OptionList options={species} selectedId={speciesId} onSelect={setSpeciesId} />
       </section>
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Background</h2>
-        <ul className={styles.options}>
-          {backgrounds.map((entry) => {
-            const selected = entry.id === backgroundId;
-            return (
-              <li key={entry.id}>
-                <button
-                  type="button"
-                  className={selected ? styles.optionSelected : styles.option}
-                  aria-pressed={selected}
-                  onClick={() => selectBackground(entry.id)}
-                >
-                  <span className={styles.optionName}>{entry.name}</span>
-                  <span className={styles.optionDescription}>{entry.description}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <OptionList options={backgrounds} selectedId={backgroundId} onSelect={selectBackground} />
         {chosenBackground ? (
           <div className={styles.allocation}>
             <p className={styles.hint}>
               Increase one {chosenBackground.name} ability by 2 and another by 1, or all three by 1 —{' '}
               {bonusRemaining} point{bonusRemaining === 1 ? '' : 's'} left.
             </p>
-            <ul className={styles.abilities}>
-              {chosenBackground.abilityScores.map((ability) => {
-                const added = bonuses[ability] ?? 0;
-                return (
-                  <li key={ability} className={styles.ability}>
-                    <span className={styles.abilityName}>{ability.toUpperCase()}</span>
-                    <span className={styles.bonusValue}>{added > 0 ? `+${added}` : '—'}</span>
-                    <span className={styles.stepper}>
-                      <button
-                        type="button"
-                        className={styles.step}
-                        aria-label={`Decrease ${ability.toUpperCase()}`}
-                        disabled={added <= 0}
-                        onClick={() => stepBonus(ability, -1)}
-                      >
-                        −
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.step}
-                        aria-label={`Increase ${ability.toUpperCase()}`}
-                        disabled={bonusRemaining <= 0 || added >= backgroundMaxPerAbility}
-                        onClick={() => stepBonus(ability, 1)}
-                      >
-                        +
-                      </button>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+            <AbilityAllocator
+              abilities={chosenBackground.abilityScores}
+              allocation={bonuses}
+              valueLabel={(_, added) => (added > 0 ? `+${added}` : '—')}
+              canIncrease={(_, added) => bonusRemaining > 0 && added < backgroundMaxPerAbility}
+              onChange={setBonuses}
+            />
           </div>
         ) : null}
         {backgroundFeat && featSkillChoice ? (
@@ -245,53 +171,20 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
               {backgroundFeat.name} grants proficiency in any {featSkillChoice.count} skills —{' '}
               {featSkills.length} of {featSkillChoice.count} chosen.
             </p>
-            <ul className={styles.skillGrid}>
-              {allSkills.map((skill) => {
-                const selected = featSkills.includes(skill);
-                const full = featSkills.length >= featSkillChoice.count;
-                return (
-                  <li key={skill}>
-                    <button
-                      type="button"
-                      className={selected ? styles.toggleSelected : styles.toggle}
-                      aria-pressed={selected}
-                      disabled={
-                        grantedSkills.includes(skill) ||
-                        skills.includes(skill) ||
-                        (!selected && full)
-                      }
-                      onClick={() => toggleFeatSkill(skill)}
-                    >
-                      {titleCase(skill)}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <SkillToggleGrid
+              options={allSkills}
+              selected={featSkills}
+              locked={[...grantedSkills, ...skills]}
+              max={featSkillChoice.count}
+              onChange={setFeatSkills}
+            />
           </div>
         ) : null}
       </section>
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Class</h2>
-        <ul className={styles.options}>
-          {classes.map((entry) => {
-            const selected = entry.id === classId;
-            return (
-              <li key={entry.id}>
-                <button
-                  type="button"
-                  className={selected ? styles.optionSelected : styles.option}
-                  aria-pressed={selected}
-                  onClick={() => selectClass(entry.id)}
-                >
-                  <span className={styles.optionName}>{entry.name}</span>
-                  <span className={styles.optionDescription}>{entry.description}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <OptionList options={classes} selectedId={classId} onSelect={selectClass} />
       </section>
 
       <section className={styles.section}>
@@ -353,83 +246,41 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
                     .join(' and ')}.`
                 : ''}
             </p>
-            <ul className={styles.skillGrid}>
-              {chosen.skillProficiencies.from.map((skill) => {
-                const selected = skills.includes(skill);
-                const full = skills.length >= chosen.skillProficiencies.choose;
-                return (
-                  <li key={skill}>
-                    <button
-                      type="button"
-                      className={selected ? styles.toggleSelected : styles.toggle}
-                      aria-pressed={selected}
-                      disabled={
-                        grantedSkills.includes(skill) ||
-                        featSkills.includes(skill) ||
-                        (!selected && full)
-                      }
-                      onClick={() => toggleSkill(skill)}
-                    >
-                      {titleCase(skill)}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <SkillToggleGrid
+              options={chosen.skillProficiencies.from}
+              selected={skills}
+              locked={[...grantedSkills, ...featSkills]}
+              max={chosen.skillProficiencies.choose}
+              onChange={setSkills}
+            />
           </section>
 
           <section className={styles.section}>
             <h2 className={styles.heading}>Starting Equipment</h2>
-            <ul className={styles.options}>
-              {chosen.startingEquipment.from.map((pkg) => {
-                const selected = pkg.label === equipmentLabel;
-                return (
-                  <li key={pkg.label}>
-                    <button
-                      type="button"
-                      className={selected ? styles.optionSelected : styles.option}
-                      aria-pressed={selected}
-                      onClick={() => setEquipmentLabel(pkg.label)}
-                    >
-                      <span className={styles.optionName}>Option {pkg.label}</span>
-                      <span className={styles.optionDescription}>{describePackage(pkg)}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <OptionList
+              options={chosen.startingEquipment.from.map((pkg) => ({
+                id: pkg.label,
+                name: `Option ${pkg.label}`,
+                description: describePackage(pkg),
+              }))}
+              selectedId={equipmentLabel}
+              onSelect={setEquipmentLabel}
+            />
           </section>
 
-          {featFeatures.map((feature) => {
-            const category = grantedFeatCategory(feature);
-            const options = feats.filter((feat) => feat.category === category);
-            return (
-              <section key={feature.id} className={styles.section}>
-                <h2 className={styles.heading}>{feature.name}</h2>
-                <p className={styles.hint}>{feature.description}</p>
-                <ul className={styles.options}>
-                  {options.map((feat) => {
-                    const selected = featChoices[feature.id] === feat.id;
-                    return (
-                      <li key={feat.id}>
-                        <button
-                          type="button"
-                          className={selected ? styles.optionSelected : styles.option}
-                          aria-pressed={selected}
-                          onClick={() =>
-                            setFeatChoices((current) => ({ ...current, [feature.id]: feat.id }))
-                          }
-                        >
-                          <span className={styles.optionName}>{feat.name}</span>
-                          <span className={styles.optionDescription}>{feat.description}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            );
-          })}
+          {featFeatures.map((feature) => (
+            <section key={feature.id} className={styles.section}>
+              <h2 className={styles.heading}>{feature.name}</h2>
+              <p className={styles.hint}>{feature.description}</p>
+              <OptionList
+                options={feats.filter((feat) => feat.category === grantedFeatCategory(feature))}
+                selectedId={featChoices[feature.id] ?? null}
+                onSelect={(featId) =>
+                  setFeatChoices((current) => ({ ...current, [feature.id]: featId }))
+                }
+              />
+            </section>
+          ))}
         </>
       ) : null}
 

@@ -73,7 +73,7 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
     character: Character;
     feature: ClassFeature;
   } | null>(null);
-  const sheet = derive(character, classes, weapons, feats, subclasses, species, backgrounds);
+  const sheet = derive(character, { classes, weapons, feats, subclasses, species, backgrounds });
   const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
   const subclassLine = sheet.classes
     .map((entry) => entry.subclass)
@@ -87,18 +87,21 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
     (entry) => entry.id === character.backgroundId,
   )?.featId;
 
-  const pendingOptions = pending
-    ? feats.filter(
-        (feat) =>
-          feat.category === grantedFeatCategory(pending.feature) &&
-          feat.id !== backgroundFeatId &&
-          !pending.character.featIds.includes(feat.id),
-      )
-    : [];
+  function featOptionsFor(feature: ClassFeature, target: Character) {
+    return feats.filter(
+      (feat) =>
+        feat.category === grantedFeatCategory(feature) &&
+        feat.id !== backgroundFeatId &&
+        !target.featIds.includes(feat.id),
+    );
+  }
 
-  const pendingSubclassOptions = pendingSubclass
-    ? subclasses.filter((entry) => entry.classId === pendingSubclass.character.classes[0]?.classId)
-    : [];
+  function subclassOptionsFor(target: Character) {
+    return subclasses.filter((entry) => entry.classId === target.classes[0]?.classId);
+  }
+
+  const pendingOptions = pending ? featOptionsFor(pending.feature, pending.character) : [];
+  const pendingSubclassOptions = pendingSubclass ? subclassOptionsFor(pendingSubclass.character) : [];
 
   function levelUp() {
     const next: Character = {
@@ -110,24 +113,13 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
     const gained = featuresGained(character, next);
 
     const subclassFeature = gained.find(grantsSubclass);
-    const subclassOptions = subclassFeature
-      ? subclasses.filter((entry) => entry.classId === next.classes[0]?.classId)
-      : [];
-    if (subclassFeature && subclassOptions.length > 0) {
+    if (subclassFeature && subclassOptionsFor(next).length > 0) {
       setPendingSubclass({ character: next, feature: subclassFeature });
       return;
     }
 
     const featFeature = gained.find((feature) => grantedFeatCategory(feature));
-    const featOptions = featFeature
-      ? feats.filter(
-          (feat) =>
-            feat.category === grantedFeatCategory(featFeature) &&
-            feat.id !== backgroundFeatId &&
-            !next.featIds.includes(feat.id),
-        )
-      : [];
-    if (featFeature && featOptions.length > 0) {
+    if (featFeature && featOptionsFor(featFeature, next).length > 0) {
       setPending({ character: next, feature: featFeature });
       return;
     }

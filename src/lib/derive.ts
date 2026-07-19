@@ -12,16 +12,23 @@ import type {
   SheetFeature,
   SheetSkill,
 } from '../types/sheet';
+import { effectOfKind, effectsOfKind, type EffectOfKind } from './effects';
 import { skillAbilities } from './skill-abilities';
 
-type GrantAbility = Extract<Effect, { kind: 'grantAbility' }>;
-type GrantWeaponMastery = Extract<Effect, { kind: 'grantWeaponMastery' }>;
-type GrantFeat = Extract<Effect, { kind: 'grantFeat' }>;
-type ReplaceFeature = Extract<Effect, { kind: 'replaceFeature' }>;
-type AttackRollBonus = Extract<Effect, { kind: 'attackRollBonus' }>;
-type InitiativeBonus = Extract<Effect, { kind: 'initiativeBonus' }>;
-type HitPointMaxBonus = Extract<Effect, { kind: 'hitPointMaxBonus' }>;
-type UnarmedStrikeDamage = Extract<Effect, { kind: 'unarmedStrikeDamage' }>;
+export interface DeriveData {
+  classes?: Class[];
+  weapons?: Weapon[];
+  feats?: Feat[];
+  subclasses?: Subclass[];
+  species?: Species[];
+  backgrounds?: Background[];
+}
+
+interface ResolvedClass {
+  definition: Class;
+  subclass: Subclass | undefined;
+  level: number;
+}
 
 interface TakenFeature {
   feature: ClassFeature;
@@ -52,25 +59,18 @@ function grantsAbility(feature: ClassFeature): boolean {
 }
 
 export function grantedFeatCategory(feature: ClassFeature): FeatCategory | undefined {
-  const effect = feature.effects.find((e): e is GrantFeat => e.kind === 'grantFeat');
-  return effect?.category;
+  return effectOfKind(feature.effects, 'grantFeat')?.category;
 }
 
 export function grantsSubclass(feature: ClassFeature): boolean {
   return feature.effects.some((effect) => effect.kind === 'grantSubclass');
 }
 
-function replacedFeatureIds(feature: ClassFeature): string[] {
-  return feature.effects
-    .filter((effect): effect is ReplaceFeature => effect.kind === 'replaceFeature')
-    .map((effect) => effect.featureId);
-}
-
 function isAbilityScoreImprovement(feat: Feat): boolean {
   return feat.effects.some((effect) => effect.kind === 'abilityScoreChoice');
 }
 
-function initiativeAmount(effect: InitiativeBonus, proficiency: number): number {
+function initiativeAmount(effect: EffectOfKind<'initiativeBonus'>, proficiency: number): number {
   return effect.amount === 'proficiencyBonus' ? proficiency : effect.amount;
 }
 
@@ -105,11 +105,7 @@ function featNote(feat: Feat, proficiency: number, level: number): string | unde
   return applied.length ? `Already included in your totals: ${applied.join(', ')}.` : undefined;
 }
 
-function abilityScoresFor(
-  character: Character,
-  feats: Feat[],
-  featIds: string[],
-): Record<Ability, number> {
+function abilityScoresFor(character: Character, featEffects: Effect[]): Record<Ability, number> {
   const totals: Record<Ability, number> = { ...character.abilityScores };
   const add = (ability: Ability, amount: number) => {
     totals[ability] = Math.min(20, totals[ability] + amount);
@@ -117,60 +113,69 @@ function abilityScoresFor(
 
   const chosen = character.abilityScoreIncreases ?? {};
   (Object.keys(chosen) as Ability[]).forEach((ability) => add(ability, chosen[ability] ?? 0));
-
-  featIds.forEach((id) => {
-    feats
-      .find((feat) => feat.id === id)
-      ?.effects.forEach((effect) => {
-        if (effect.kind === 'abilityScoreIncrease') add(effect.ability, effect.amount);
-      });
-  });
+  effectsOfKind(featEffects, 'abilityScoreIncrease').forEach((effect) =>
+    add(effect.ability, effect.amount),
+  );
 
   return totals;
 }
 
-function featuresFor(
+function resolveClasses(
   character: Character,
   classes: Class[],
   subclasses: Subclass[],
-): TakenFeature[] {
-  const taken = character.classes.flatMap((taken) => {
-    const found = classes.find((entry) => entry.id === taken.classId);
-    if (!found) return [];
+): ResolvedClass[] {
+  return character.classes.flatMap((taken) => {
+    const definition = classes.find((entry) => entry.id === taken.classId);
+    if (!definition) return [];
     const subclass = taken.subclassId
       ? subclasses.find((entry) => entry.id === taken.subclassId)
       : undefined;
-    return [...found.features, ...(subclass?.features ?? [])]
-      .filter((feature) => feature.level <= taken.level)
-      .map((feature) => ({ feature, classLevel: taken.level }));
+    return [{ definition, subclass, level: taken.level }];
   });
+}
 
-  const replaced = new Set(taken.flatMap(({ feature }) => replacedFeatureIds(feature)));
-  return taken.filter(({ feature }) => !replaced.has(feature.id));
+function featuresFor(taken: ResolvedClass[]): TakenFeature[] {
+  const all = taken.flatMap(({ definition, subclass, level }) =>
+    [...definition.features, ...(subclass?.features ?? [])]
+      .filter((feature) => feature.level <= level)
+      .map((feature) => ({ feature, classLevel: level })),
+  );
+
+  const replaced = new Set(
+    all.flatMap(({ feature }) =>
+      effectsOfKind(feature.effects, 'replaceFeature').map((effect) => effect.featureId),
+    ),
+  );
+  return all.filter(({ feature }) => !replaced.has(feature.id));
 }
 
 function sheetFeature({ feature, classLevel }: TakenFeature): SheetFeature {
   const { id, name, description, level } = feature;
-  const mastery = feature.effects.find(
-    (effect): effect is GrantWeaponMastery => effect.kind === 'grantWeaponMastery',
-  );
+  const mastery = effectOfKind(feature.effects, 'grantWeaponMastery');
   const detail = mastery ? `${resolveScaled(mastery.count, classLevel)} weapons` : undefined;
   return { id, name, description, level, detail };
 }
 
-function hitPointsFor(character: Character, classes: Class[], conModifier: number): number {
-  return character.classes.reduce((total, taken, index) => {
-    const found = classes.find((entry) => entry.id === taken.classId);
-    if (!found) return total;
-
-    const size = dieSize(found.hitDie);
+function hitPointsFor(taken: ResolvedClass[], conModifier: number): number {
+  return taken.reduce((total, { definition, level }, index) => {
+    const size = dieSize(definition.hitDie);
     const averageLevel = size / 2 + 1 + conModifier;
 
     if (index === 0) {
-      return total + (size + conModifier) + (taken.level - 1) * averageLevel;
+      return total + (size + conModifier) + (level - 1) * averageLevel;
     }
-    return total + taken.level * averageLevel;
+    return total + level * averageLevel;
   }, 0);
+}
+
+function sheetAbilities(effects: Effect[], level: number, proficiency: number): SheetAbility[] {
+  return effectsOfKind(effects, 'grantAbility').map(({ name, description, activation, uses }) => ({
+    name,
+    description,
+    activation,
+    uses: resolveUses(uses, level, proficiency),
+  }));
 }
 
 function attackAbility(weapon: Weapon, modifiers: Record<Ability, number>): Ability {
@@ -182,15 +187,11 @@ function attackAbility(weapon: Weapon, modifiers: Record<Ability, number>): Abil
 function attacksFor(
   character: Character,
   weapons: Weapon[],
-  feats: Feat[],
-  featIds: string[],
+  featEffects: Effect[],
   modifiers: Record<Ability, number>,
   bonus: number,
 ): SheetAttack[] {
-  const featEffects = featIds.flatMap((id) => feats.find((feat) => feat.id === id)?.effects ?? []);
-  const attackBonuses = featEffects.filter(
-    (effect): effect is AttackRollBonus => effect.kind === 'attackRollBonus',
-  );
+  const attackBonuses = effectsOfKind(featEffects, 'attackRollBonus');
   const featBonusFor = (attackType: AttackType) =>
     attackBonuses
       .filter((effect) => effect.attackType === attackType)
@@ -221,9 +222,7 @@ function attacksFor(
 }
 
 function unarmedStrike(featEffects: Effect[], strength: number, bonus: number): SheetAttack {
-  const upgrade = featEffects.find(
-    (effect): effect is UnarmedStrikeDamage => effect.kind === 'unarmedStrikeDamage',
-  );
+  const upgrade = effectOfKind(featEffects, 'unarmedStrikeDamage');
   return {
     name: 'Unarmed Strike',
     attackBonus: strength + bonus,
@@ -233,15 +232,9 @@ function unarmedStrike(featEffects: Effect[], strength: number, bonus: number): 
   };
 }
 
-export function derive(
-  character: Character,
-  classes: Class[],
-  weapons: Weapon[] = [],
-  feats: Feat[] = [],
-  subclasses: Subclass[] = [],
-  species: Species[] = [],
-  backgrounds: Background[] = [],
-): Sheet {
+export function derive(character: Character, data: DeriveData = {}): Sheet {
+  const { classes = [], weapons = [], feats = [], subclasses = [], species = [], backgrounds = [] } = data;
+
   const level = character.classes.reduce((total, taken) => total + taken.level, 0);
   const bonus = proficiencyBonus(level);
 
@@ -253,8 +246,9 @@ export function derive(
       ...character.featIds,
     ]),
   ];
+  const featEffects = featIds.flatMap((id) => feats.find((feat) => feat.id === id)?.effects ?? []);
 
-  const abilityScores = abilityScoresFor(character, feats, featIds);
+  const abilityScores = abilityScoresFor(character, featEffects);
   const abilityModifiers: Record<Ability, number> = {
     str: abilityModifier(abilityScores.str),
     dex: abilityModifier(abilityScores.dex),
@@ -277,27 +271,18 @@ export function derive(
     };
   });
 
-  const features = featuresFor(character, classes, subclasses);
+  const taken = resolveClasses(character, classes, subclasses);
+  const features = featuresFor(taken);
 
   const abilities: SheetAbility[] = features.flatMap(({ feature, classLevel }) =>
-    feature.effects
-      .filter((effect): effect is GrantAbility => effect.kind === 'grantAbility')
-      .map(({ name, description, activation, uses }) => ({
-        name,
-        description,
-        activation,
-        uses: resolveUses(uses, classLevel, bonus),
-      })),
+    sheetAbilities(feature.effects, classLevel, bonus),
   );
 
-  const taken: SheetClass[] = character.classes.flatMap((entry) => {
-    const found = classes.find((cls) => cls.id === entry.classId);
-    if (!found) return [];
-    const subclass = entry.subclassId
-      ? subclasses.find((cls) => cls.id === entry.subclassId)
-      : undefined;
-    return [{ name: found.name, subclass: subclass?.name, level: entry.level }];
-  });
+  const sheetClasses: SheetClass[] = taken.map(({ definition, subclass, level: classLevel }) => ({
+    name: definition.name,
+    subclass: subclass?.name,
+    level: classLevel,
+  }));
 
   const characterFeats: SheetFeat[] = featIds.flatMap((id) => {
     const feat = feats.find((entry) => entry.id === id);
@@ -305,38 +290,29 @@ export function derive(
     return [{ name: feat.name, description: feat.description, category: feat.category, note: featNote(feat, bonus, level) }];
   });
 
-  const featEffects = featIds.flatMap((id) => feats.find((feat) => feat.id === id)?.effects ?? []);
-
   const initiative =
     abilityModifiers.dex +
-    featEffects
-      .filter((effect): effect is InitiativeBonus => effect.kind === 'initiativeBonus')
-      .reduce((total, effect) => total + initiativeAmount(effect, bonus), 0);
+    effectsOfKind(featEffects, 'initiativeBonus').reduce(
+      (total, effect) => total + initiativeAmount(effect, bonus),
+      0,
+    );
 
-  const hitPointMaxBonus = featEffects
-    .filter((effect): effect is HitPointMaxBonus => effect.kind === 'hitPointMaxBonus')
-    .reduce((total, effect) => total + effect.amountPerLevel * level, 0);
-
-  const featAbilities: SheetAbility[] = featEffects
-    .filter((effect): effect is GrantAbility => effect.kind === 'grantAbility')
-    .map(({ name, description, activation, uses }) => ({
-      name,
-      description,
-      activation,
-      uses: resolveUses(uses, level, bonus),
-    }));
+  const hitPointMaxBonus = effectsOfKind(featEffects, 'hitPointMaxBonus').reduce(
+    (total, effect) => total + effect.amountPerLevel * level,
+    0,
+  );
 
   return {
     name: character.name,
     species: chosenSpecies?.name,
     background: chosenBackground?.name,
-    classes: taken,
+    classes: sheetClasses,
     level,
     proficiencyBonus: bonus,
     initiative,
     abilityScores,
     abilityModifiers,
-    hitPoints: hitPointsFor(character, classes, abilityModifiers.con) + hitPointMaxBonus,
+    hitPoints: hitPointsFor(taken, abilityModifiers.con) + hitPointMaxBonus,
     skills,
     features: features
       .filter(
@@ -350,7 +326,7 @@ export function derive(
       description,
     })),
     feats: characterFeats,
-    abilities: [...abilities, ...featAbilities],
-    attacks: attacksFor(character, weapons, feats, featIds, abilityModifiers, bonus),
+    abilities: [...abilities, ...sheetAbilities(featEffects, level, bonus)],
+    attacks: attacksFor(character, weapons, featEffects, abilityModifiers, bonus),
   };
 }

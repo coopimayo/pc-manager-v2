@@ -30,7 +30,7 @@ describe('proficiencyBonus', () => {
 });
 
 describe('derive', () => {
-  const sheet = derive(exampleFighter, [fighter]);
+  const sheet = derive(exampleFighter, { classes: [fighter] });
 
   it('reports the class and level', () => {
     expect(sheet.level).toBe(1);
@@ -43,7 +43,10 @@ describe('derive', () => {
   });
 
   it('raises the hit point maximum by twice the character level for Tough and notes it', () => {
-    const tough = derive({ ...exampleFighter, featIds: ['tough'] }, [fighter], weapons, feats);
+    const tough = derive(
+      { ...exampleFighter, featIds: ['tough'] },
+      { classes: [fighter], weapons, feats },
+    );
     expect(tough.hitPoints).toBe(14);
     expect(tough.feats.find((feat) => feat.name === 'Tough')?.note).toBe(
       'Already included in your totals: +2 Hit Points.',
@@ -51,9 +54,7 @@ describe('derive', () => {
 
     const tough5 = derive(
       { ...exampleFighter, classes: [{ classId: 'fighter', level: 5 }], featIds: ['tough'] },
-      [fighter],
-      weapons,
-      feats,
+      { classes: [fighter], weapons, feats },
     );
     expect(tough5.hitPoints).toBe(54);
   });
@@ -77,9 +78,10 @@ describe('derive', () => {
   });
 
   it('omits features that surface as an ability, a granted feat, or a subclass choice', () => {
-    const level3 = derive({ ...exampleFighter, classes: [{ classId: 'fighter', level: 3 }] }, [
-      fighter,
-    ]);
+    const level3 = derive(
+      { ...exampleFighter, classes: [{ classId: 'fighter', level: 3 }] },
+      { classes: [fighter] },
+    );
 
     expect(level3.features.map((feature) => feature.name)).toEqual([
       'Weapon Mastery',
@@ -93,10 +95,7 @@ describe('derive', () => {
   it('folds the chosen subclass features into the sheet', () => {
     const champion3 = derive(
       { ...exampleFighter, classes: [{ classId: 'fighter', subclassId: 'champion', level: 3 }] },
-      [fighter],
-      [],
-      [],
-      [champion],
+      { classes: [fighter], subclasses: [champion] },
     );
 
     expect(champion3.classes[0]?.subclass).toBe('Champion');
@@ -114,7 +113,7 @@ describe('derive', () => {
       classes: [{ classId: 'fighter', subclassId: 'champion', level }],
     });
     const names = (level: number) =>
-      derive(withClasses(level), [fighter], [], [], [champion]).features.map(
+      derive(withClasses(level), { classes: [fighter], subclasses: [champion] }).features.map(
         (feature) => feature.name,
       );
 
@@ -136,7 +135,7 @@ describe('derive', () => {
   });
 
   describe('attacks', () => {
-    const vera = derive(veraQuickblade, [fighter], weapons, feats);
+    const vera = derive(veraQuickblade, { classes: [fighter], weapons, feats });
 
     it('adds a matching attack-roll bonus to the to-hit but not the damage', () => {
       const longbow = vera.attacks.find((attack) => attack.name === 'Longbow');
@@ -168,9 +167,7 @@ describe('derive', () => {
     it('upgrades the Unarmed Strike damage die with Tavern Brawler and notes it', () => {
       const brawler = derive(
         { ...exampleFighter, featIds: ['tavern-brawler'] },
-        [fighter],
-        weapons,
-        feats,
+        { classes: [fighter], weapons, feats },
       );
       const unarmed = brawler.attacks.find((attack) => attack.name === 'Unarmed Strike');
       expect(unarmed).toEqual({
@@ -186,11 +183,14 @@ describe('derive', () => {
 
   describe('initiative', () => {
     it('is the dexterity modifier without a bonus', () => {
-      expect(derive(exampleFighter, [fighter]).initiative).toBe(1);
+      expect(derive(exampleFighter, { classes: [fighter] }).initiative).toBe(1);
     });
 
     it('adds the proficiency bonus for Alert and notes it on the feat', () => {
-      const alert = derive({ ...exampleFighter, featIds: ['alert'] }, [fighter], weapons, feats);
+      const alert = derive(
+        { ...exampleFighter, featIds: ['alert'] },
+        { classes: [fighter], weapons, feats },
+      );
       expect(alert.initiative).toBe(3);
       expect(alert.feats.find((feat) => feat.name === 'Alert')?.note).toBe(
         'Already included in your totals: +2 to Initiative.',
@@ -200,7 +200,10 @@ describe('derive', () => {
 
   describe('feat abilities', () => {
     it('grants Luck Points from Lucky with uses equal to the proficiency bonus', () => {
-      const lucky = derive({ ...exampleFighter, featIds: ['lucky'] }, [fighter], weapons, feats);
+      const lucky = derive(
+        { ...exampleFighter, featIds: ['lucky'] },
+        { classes: [fighter], weapons, feats },
+      );
       expect(lucky.abilities.find((ability) => ability.name === 'Luck Points')).toEqual({
         name: 'Luck Points',
         description:
@@ -213,9 +216,7 @@ describe('derive', () => {
     it('scales Luck Points with the proficiency bonus at higher levels', () => {
       const lucky = derive(
         { ...exampleFighter, classes: [{ classId: 'fighter', level: 5 }], featIds: ['lucky'] },
-        [fighter],
-        weapons,
-        feats,
+        { classes: [fighter], weapons, feats },
       );
       expect(
         lucky.abilities.find((ability) => ability.name === 'Luck Points')?.uses?.count,
@@ -224,7 +225,7 @@ describe('derive', () => {
   });
 
   describe('feats', () => {
-    const vera = derive(veraQuickblade, [fighter], weapons, feats);
+    const vera = derive(veraQuickblade, { classes: [fighter], weapons, feats });
 
     it('lists the character feats with their category', () => {
       expect(vera.feats).toEqual([
@@ -248,9 +249,7 @@ describe('derive', () => {
           featIds: ['ability-score-improvement'],
           abilityScoreIncreases: { str: 2 },
         },
-        [fighter],
-        weapons,
-        feats,
+        { classes: [fighter], weapons, feats },
       );
       expect(boosted.feats).toEqual([]);
       expect(boosted.abilityScores.str).toBe(18);
@@ -258,7 +257,13 @@ describe('derive', () => {
   });
 
   describe('species and background', () => {
-    const resolved = derive(exampleFighter, [fighter], weapons, feats, [], [human], [soldier]);
+    const resolved = derive(exampleFighter, {
+      classes: [fighter],
+      weapons,
+      feats,
+      species: [human],
+      backgrounds: [soldier],
+    });
 
     it('names the resolved species and background', () => {
       expect(resolved.species).toBe('Human');
@@ -282,12 +287,7 @@ describe('derive', () => {
     it('marks the background skills proficient alongside the chosen ones', () => {
       const scholar = derive(
         { ...exampleFighter, skillProficiencies: ['history'] },
-        [fighter],
-        weapons,
-        feats,
-        [],
-        [human],
-        [soldier],
+        { classes: [fighter], weapons, feats, species: [human], backgrounds: [soldier] },
       );
       const proficient = scholar.skills
         .filter((entry) => entry.proficient)
@@ -300,12 +300,7 @@ describe('derive', () => {
 
       const doubled = derive(
         { ...exampleFighter, featIds: ['savage-attacker'] },
-        [fighter],
-        weapons,
-        feats,
-        [],
-        [human],
-        [soldier],
+        { classes: [fighter], weapons, feats, species: [human], backgrounds: [soldier] },
       );
       expect(doubled.feats.map((feat) => feat.name)).toEqual(['Savage Attacker']);
     });
@@ -313,7 +308,10 @@ describe('derive', () => {
 
   describe('ability score increases', () => {
     it('folds chosen increases into the score and its modifier', () => {
-      const boosted = derive({ ...exampleFighter, abilityScoreIncreases: { str: 2 } }, [fighter]);
+      const boosted = derive(
+        { ...exampleFighter, abilityScoreIncreases: { str: 2 } },
+        { classes: [fighter] },
+      );
       expect(boosted.abilityScores.str).toBe(18);
       expect(boosted.abilityModifiers.str).toBe(4);
     });
@@ -321,7 +319,7 @@ describe('derive', () => {
     it('spreads a split increase across two abilities', () => {
       const boosted = derive(
         { ...exampleFighter, abilityScoreIncreases: { str: 1, con: 1 } },
-        [fighter],
+        { classes: [fighter] },
       );
       expect(boosted.abilityScores.str).toBe(17);
       expect(boosted.abilityScores.con).toBe(16);
@@ -334,7 +332,7 @@ describe('derive', () => {
           abilityScores: { ...exampleFighter.abilityScores, str: 19 },
           abilityScoreIncreases: { str: 2 },
         },
-        [fighter],
+        { classes: [fighter] },
       );
       expect(capped.abilityScores.str).toBe(20);
     });
@@ -342,7 +340,7 @@ describe('derive', () => {
 
   describe('level scaling', () => {
     const atLevel = (level: number) =>
-      derive({ ...exampleFighter, classes: [{ classId: 'fighter', level }] }, [fighter]);
+      derive({ ...exampleFighter, classes: [{ classId: 'fighter', level }] }, { classes: [fighter] });
 
     const secondWindUses = (level: number) =>
       atLevel(level).abilities.find((ability) => ability.name === 'Second Wind')?.uses?.count;
@@ -374,7 +372,7 @@ describe('derive', () => {
             { classId: 'wizard', level: 9 },
           ],
         },
-        [fighter],
+        { classes: [fighter] },
       );
       const secondWind = multiclass.abilities.find((ability) => ability.name === 'Second Wind');
       expect(secondWind?.uses?.count).toBe(2);

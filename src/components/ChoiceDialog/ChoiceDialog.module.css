@@ -32,47 +32,11 @@
   font-size: 0.9rem;
 }
 
-.options {
-  list-style: none;
-  margin: 0 0 1.25rem;
-  padding: 0;
+.body {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.option,
-.optionSelected {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  width: 100%;
-  padding: 0.75rem 0.9rem;
-  border: 1.5px solid transparent;
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.optionSelected {
-  border-color: var(--color-text);
-}
-
-.option:hover {
-  border-color: var(--color-text-muted);
-}
-
-.optionName {
-  font-weight: 600;
-}
-
-.optionDescription {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--color-text-muted);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .actions {

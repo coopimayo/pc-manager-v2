@@ -123,6 +123,83 @@ describe('App', () => {
     expect(screen.getByText('Fighter 3')).toBeInTheDocument();
   });
 
+  it('creates a new character and opens its sheet', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'New Character' }));
+    expect(screen.getByRole('heading', { name: 'New Character' })).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText('Name'), 'Torin Oakenshield');
+    await user.click(screen.getByRole('button', { name: /Fighter/ }));
+
+    await user.selectOptions(screen.getByLabelText('STR'), '15');
+    await user.selectOptions(screen.getByLabelText('DEX'), '13');
+    await user.selectOptions(screen.getByLabelText('CON'), '14');
+    await user.selectOptions(screen.getByLabelText('INT'), '10');
+    await user.selectOptions(screen.getByLabelText('WIS'), '12');
+    await user.selectOptions(screen.getByLabelText('CHA'), '8');
+
+    await user.click(screen.getByRole('button', { name: 'Athletics' }));
+    await user.click(screen.getByRole('button', { name: 'Perception' }));
+    await user.click(screen.getByRole('button', { name: /Option A/ }));
+    await user.click(screen.getByRole('button', { name: /Archery/ }));
+
+    await user.click(screen.getByRole('button', { name: 'Create Character' }));
+
+    expect(screen.getByRole('heading', { name: 'Torin Oakenshield' })).toBeInTheDocument();
+    expect(screen.getByText('Fighter 1')).toBeInTheDocument();
+    expect(screen.getByText('Greatsword')).toBeInTheDocument();
+    expect(screen.getByText('2d6 + 2 slashing')).toBeInTheDocument();
+    expect(screen.getByText('Second Wind')).toBeInTheDocument();
+    expect(screen.getByText('Archery')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /All characters/ }));
+    const card = screen.getByRole('button', { name: /Torin Oakenshield/ });
+    expect(card).toHaveTextContent('Fighter 1');
+    expect(card).toHaveTextContent('12 HP');
+  });
+
+  it('disables Create Character until every choice is made', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'New Character' }));
+    const create = () => screen.getByRole('button', { name: 'Create Character' });
+    expect(create()).toBeDisabled();
+
+    await user.type(screen.getByLabelText('Name'), 'Torin');
+    await user.click(screen.getByRole('button', { name: /Fighter/ }));
+
+    await user.selectOptions(screen.getByLabelText('STR'), '15');
+    await user.selectOptions(screen.getByLabelText('DEX'), '13');
+    await user.selectOptions(screen.getByLabelText('CON'), '14');
+    await user.selectOptions(screen.getByLabelText('INT'), '10');
+    await user.selectOptions(screen.getByLabelText('WIS'), '12');
+    await user.selectOptions(screen.getByLabelText('CHA'), '8');
+
+    await user.click(screen.getByRole('button', { name: 'Athletics' }));
+    await user.click(screen.getByRole('button', { name: 'Perception' }));
+    expect(screen.getByRole('button', { name: 'History' })).toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: /Option A/ }));
+    expect(create()).toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: /Archery/ }));
+    expect(create()).toBeEnabled();
+  });
+
+  it('returns to the dashboard when creation is cancelled', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'New Character' }));
+    await user.click(screen.getByRole('button', { name: /All characters/ }));
+
+    expect(screen.getByRole('heading', { name: 'Characters' })).toBeInTheDocument();
+    expect(screen.getByText('2 characters')).toBeInTheDocument();
+  });
+
   it('returns to the dashboard from a sheet', async () => {
     const user = userEvent.setup();
     render(<App />);

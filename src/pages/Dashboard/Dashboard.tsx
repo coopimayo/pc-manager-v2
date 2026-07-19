@@ -6,16 +6,22 @@ import styles from './Dashboard.module.css';
 interface DashboardProps {
   characters: Character[];
   onSelect: (id: string) => void;
+  onCreate: () => void;
 }
 
-export function Dashboard({ characters, onSelect }: DashboardProps) {
+export function Dashboard({ characters, onSelect, onCreate }: DashboardProps) {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Characters</h1>
-        <p className={styles.subtitle}>
-          {characters.length} {characters.length === 1 ? 'character' : 'characters'}
-        </p>
+        <div>
+          <h1 className={styles.title}>Characters</h1>
+          <p className={styles.subtitle}>
+            {characters.length} {characters.length === 1 ? 'character' : 'characters'}
+          </p>
+        </div>
+        <button type="button" className={styles.create} onClick={onCreate}>
+          New Character
+        </button>
       </header>
 
       {characters.length === 0 ? (

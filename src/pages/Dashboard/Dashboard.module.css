@@ -5,7 +5,27 @@
 }
 
 .header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 2rem;
+}
+
+.create {
+  padding: 0.45rem 1rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.create:hover {
+  opacity: 0.85;
 }
 
 .title {

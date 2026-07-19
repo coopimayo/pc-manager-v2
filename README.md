@@ -14,9 +14,9 @@ type model. What exists today:
   feats, items). One type per file. Fully documented in
   [docs/domain-model.md](docs/domain-model.md).
 - **Content data** (`src/data/`) — the Fighter class through level 5, its
-  Champion subclass, its starting equipment, a set of feats (fighting styles plus
-  general feats, including Ability Score Improvement), the Human species, the
-  Soldier background, and two example characters.
+  Champion subclass, its starting equipment, a set of feats (fighting styles,
+  origin feats, and general feats including Ability Score Improvement), the
+  Human species, the Soldier background, and two example characters.
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability scores with chosen and feat increases folded in (capped
   at 20) and their modifiers, proficiency bonus, hit points, skill modifiers, the
@@ -139,9 +139,8 @@ it:
   sheet with 0 hit points rather than an error.
 - A trait that offers a choice has no `Effect` kind, so the Human's Skillful
   ("one skill of your choice") is display-only; its Versatile trait declares a
-  `grantFeat` for an origin feat, but nothing prompts for it yet and no
-  origin-category feats exist. The creator also ignores the background's
-  starting equipment and tool proficiency.
+  `grantFeat` for an origin feat, but nothing prompts for it yet. The creator
+  also ignores the background's starting equipment and tool proficiency.
 - `ClassFeature` and a granted ability each carry their own name and
   description, so Second Wind's name and text are authored twice. `derive`
   drops a feature from `Sheet.features` once it grants an ability, which stops

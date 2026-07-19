@@ -345,8 +345,8 @@ Known gaps, roughly in priority order for making the app a functional creator:
   +2/+1 allocation, class, standard-array scores, skill picks, class starting
   equipment, level-1 class feat choices). It doesn't yet offer the background's
   starting equipment or tool proficiency, and species trait effects aren't
-  acted on (a "choose a skill" trait has no `Effect` kind, and the Human's
-  Versatile origin-feat grant has no origin-category feats to offer).
+  acted on (a "choose a skill" trait has no `Effect` kind, and nothing prompts
+  for the Human's Versatile origin-feat grant).
 
 ### Small fixes
 

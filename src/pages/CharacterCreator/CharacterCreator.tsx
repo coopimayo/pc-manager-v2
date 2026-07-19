@@ -7,11 +7,15 @@ import { weapons } from '../../data/items';
 import { species } from '../../data/species';
 import { abilityModifier, grantedFeatCategory } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
-import type { Ability, Character, Skill } from '../../types';
+import { skillAbilities } from '../../lib/skill-abilities';
+import type { Ability, Character, Effect, Skill } from '../../types';
 import { describePackage, uniqueId } from './index';
 import styles from './CharacterCreator.module.css';
 
+type SkillProficiencyChoice = Extract<Effect, { kind: 'skillProficiencyChoice' }>;
+
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+const allSkills = Object.keys(skillAbilities) as Skill[];
 const standardArray = [15, 14, 13, 12, 10, 8];
 const backgroundPoints = 3;
 const backgroundMaxPerAbility = 2;
@@ -30,11 +34,16 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const [classId, setClassId] = useState<string | null>(null);
   const [scores, setScores] = useState<Partial<Record<Ability, number>>>({});
   const [skills, setSkills] = useState<Skill[]>([]);
+  const [featSkills, setFeatSkills] = useState<Skill[]>([]);
   const [equipmentLabel, setEquipmentLabel] = useState<string | null>(null);
   const [featChoices, setFeatChoices] = useState<Record<string, string>>({});
 
   const chosenSpecies = species.find((entry) => entry.id === speciesId);
   const chosenBackground = backgrounds.find((entry) => entry.id === backgroundId);
+  const backgroundFeat = feats.find((entry) => entry.id === chosenBackground?.featId);
+  const featSkillChoice = backgroundFeat?.effects.find(
+    (effect): effect is SkillProficiencyChoice => effect.kind === 'skillProficiencyChoice',
+  );
   const chosen = classes.find((entry) => entry.id === classId);
   const featFeatures = (chosen?.features ?? []).filter(
     (feature) => feature.level === 1 && grantedFeatCategory(feature),
@@ -54,6 +63,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
     chosen !== undefined &&
     scoresComplete &&
     skills.length === chosen.skillProficiencies.choose &&
+    (featSkillChoice === undefined || featSkills.length === featSkillChoice.count) &&
     equipment !== undefined &&
     featFeatures.every((feature) => featChoices[feature.id] !== undefined);
 
@@ -61,6 +71,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
     if (id === backgroundId) return;
     setBackgroundId(id);
     setBonuses({});
+    setFeatSkills([]);
     const granted = backgrounds.find((entry) => entry.id === id)?.skillProficiencies ?? [];
     setSkills((current) => current.filter((skill) => !granted.includes(skill)));
   }
@@ -92,6 +103,12 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
     );
   }
 
+  function toggleFeatSkill(skill: Skill) {
+    setFeatSkills((current) =>
+      current.includes(skill) ? current.filter((entry) => entry !== skill) : [...current, skill],
+    );
+  }
+
   function create() {
     if (!chosen || !chosenSpecies || !chosenBackground || !equipment || !scoresComplete) return;
     onCreate({
@@ -102,7 +119,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
       classes: [{ classId: chosen.id, level: 1 }],
       abilityScores: scores as Record<Ability, number>,
       abilityScoreIncreases: { ...bonuses },
-      skillProficiencies: skills,
+      skillProficiencies: [...new Set([...skills, ...featSkills])],
       featIds: featFeatures.flatMap((feature) => {
         const featId = featChoices[feature.id];
         return featId ? [featId] : [];
@@ -222,6 +239,37 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
             </ul>
           </div>
         ) : null}
+        {backgroundFeat && featSkillChoice ? (
+          <div className={styles.allocation}>
+            <p className={styles.hint}>
+              {backgroundFeat.name} grants proficiency in any {featSkillChoice.count} skills —{' '}
+              {featSkills.length} of {featSkillChoice.count} chosen.
+            </p>
+            <ul className={styles.skillGrid}>
+              {allSkills.map((skill) => {
+                const selected = featSkills.includes(skill);
+                const full = featSkills.length >= featSkillChoice.count;
+                return (
+                  <li key={skill}>
+                    <button
+                      type="button"
+                      className={selected ? styles.toggleSelected : styles.toggle}
+                      aria-pressed={selected}
+                      disabled={
+                        grantedSkills.includes(skill) ||
+                        skills.includes(skill) ||
+                        (!selected && full)
+                      }
+                      onClick={() => toggleFeatSkill(skill)}
+                    >
+                      {titleCase(skill)}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
       </section>
 
       <section className={styles.section}>
@@ -315,7 +363,11 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
                       type="button"
                       className={selected ? styles.toggleSelected : styles.toggle}
                       aria-pressed={selected}
-                      disabled={grantedSkills.includes(skill) || (!selected && full)}
+                      disabled={
+                        grantedSkills.includes(skill) ||
+                        featSkills.includes(skill) ||
+                        (!selected && full)
+                      }
                       onClick={() => toggleSkill(skill)}
                     >
                       {titleCase(skill)}

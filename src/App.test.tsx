@@ -208,6 +208,60 @@ describe('App', () => {
     expect(create()).toBeEnabled();
   });
 
+  it('requires and applies skill picks when the background feat is Skilled', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'New Character' }));
+    await user.type(screen.getByLabelText('Name'), 'Selene Highmore');
+    await user.click(screen.getByRole('button', { name: /Human/ }));
+    await user.click(screen.getByRole('button', { name: /Noble/ }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase INT' }));
+    await user.click(screen.getByRole('button', { name: /Fighter/ }));
+
+    await user.selectOptions(screen.getByLabelText('STR'), '15');
+    await user.selectOptions(screen.getByLabelText('DEX'), '13');
+    await user.selectOptions(screen.getByLabelText('CON'), '14');
+    await user.selectOptions(screen.getByLabelText('INT'), '10');
+    await user.selectOptions(screen.getByLabelText('WIS'), '12');
+    await user.selectOptions(screen.getByLabelText('CHA'), '8');
+
+    const skillsSection = screen
+      .getByRole('heading', { name: 'Skills' })
+      .closest('section') as HTMLElement;
+    await user.click(within(skillsSection).getByRole('button', { name: 'Acrobatics' }));
+    await user.click(within(skillsSection).getByRole('button', { name: 'Perception' }));
+    await user.click(screen.getByRole('button', { name: /Option A/ }));
+    await user.click(screen.getByRole('button', { name: /Archery/ }));
+
+    const create = () => screen.getByRole('button', { name: 'Create Character' });
+    expect(create()).toBeDisabled();
+
+    const backgroundSection = screen
+      .getByRole('heading', { name: 'Background' })
+      .closest('section') as HTMLElement;
+    expect(within(backgroundSection).getByRole('button', { name: 'History' })).toBeDisabled();
+    expect(within(backgroundSection).getByRole('button', { name: 'Acrobatics' })).toBeDisabled();
+
+    await user.click(within(backgroundSection).getByRole('button', { name: 'Arcana' }));
+    await user.click(within(backgroundSection).getByRole('button', { name: 'Stealth' }));
+    await user.click(within(backgroundSection).getByRole('button', { name: 'Insight' }));
+    expect(create()).toBeEnabled();
+
+    await user.click(create());
+
+    expect(screen.getByRole('heading', { name: 'Selene Highmore' })).toBeInTheDocument();
+    expect(screen.getByText('Skilled')).toBeInTheDocument();
+
+    const sheetSkills = screen
+      .getByRole('heading', { name: 'Skills' })
+      .closest('section') as HTMLElement;
+    const arcana = within(sheetSkills).getByText('Arcana').closest('li') as HTMLElement;
+    expect(arcana).toHaveTextContent('+2');
+  });
+
   it('returns to the dashboard when creation is cancelled', async () => {
     const user = userEvent.setup();
     render(<App />);

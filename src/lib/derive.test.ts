@@ -42,6 +42,22 @@ describe('derive', () => {
     expect(sheet.hitPoints).toBe(12);
   });
 
+  it('raises the hit point maximum by twice the character level for Tough and notes it', () => {
+    const tough = derive({ ...exampleFighter, featIds: ['tough'] }, [fighter], weapons, feats);
+    expect(tough.hitPoints).toBe(14);
+    expect(tough.feats.find((feat) => feat.name === 'Tough')?.note).toBe(
+      'Already included in your totals: +2 Hit Points.',
+    );
+
+    const tough5 = derive(
+      { ...exampleFighter, classes: [{ classId: 'fighter', level: 5 }], featIds: ['tough'] },
+      [fighter],
+      weapons,
+      feats,
+    );
+    expect(tough5.hitPoints).toBe(54);
+  });
+
   it('adds proficiency only to proficient skills', () => {
     const athletics = sheet.skills.find((entry) => entry.skill === 'athletics');
     const acrobatics = sheet.skills.find((entry) => entry.skill === 'acrobatics');

@@ -193,6 +193,7 @@ type Effect =
   | { kind: 'replaceFeature'; featureId: string }                          // this feature supersedes an earlier one, dropping it from the sheet
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType }
   | { kind: 'initiativeBonus'; amount: number | 'proficiencyBonus' }
+  | { kind: 'hitPointMaxBonus'; amountPerLevel: number }                    // scales with total character level, e.g. Tough
   | { kind: 'unarmedStrikeDamage'; count: number; die: Die };          // upgrades the Unarmed Strike's damage, e.g. Tavern Brawler
 ```
 

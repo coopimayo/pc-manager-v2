@@ -20,6 +20,7 @@ type GrantFeat = Extract<Effect, { kind: 'grantFeat' }>;
 type ReplaceFeature = Extract<Effect, { kind: 'replaceFeature' }>;
 type AttackRollBonus = Extract<Effect, { kind: 'attackRollBonus' }>;
 type InitiativeBonus = Extract<Effect, { kind: 'initiativeBonus' }>;
+type HitPointMaxBonus = Extract<Effect, { kind: 'hitPointMaxBonus' }>;
 type UnarmedStrikeDamage = Extract<Effect, { kind: 'unarmedStrikeDamage' }>;
 
 interface TakenFeature {
@@ -84,7 +85,7 @@ function resolveUses(
   return { count, recharge: uses.recharge };
 }
 
-function featNote(feat: Feat, proficiency: number): string | undefined {
+function featNote(feat: Feat, proficiency: number, level: number): string | undefined {
   const applied = feat.effects.flatMap((effect) => {
     switch (effect.kind) {
       case 'attackRollBonus':
@@ -93,6 +94,8 @@ function featNote(feat: Feat, proficiency: number): string | undefined {
         return [`+${effect.amount} ${effect.ability.toUpperCase()}`];
       case 'initiativeBonus':
         return [`+${initiativeAmount(effect, proficiency)} to Initiative`];
+      case 'hitPointMaxBonus':
+        return [`+${effect.amountPerLevel * level} Hit Points`];
       case 'unarmedStrikeDamage':
         return [`${effect.count}${effect.die} Unarmed Strike damage`];
       default:
@@ -299,7 +302,7 @@ export function derive(
   const characterFeats: SheetFeat[] = featIds.flatMap((id) => {
     const feat = feats.find((entry) => entry.id === id);
     if (!feat || isAbilityScoreImprovement(feat)) return [];
-    return [{ name: feat.name, description: feat.description, category: feat.category, note: featNote(feat, bonus) }];
+    return [{ name: feat.name, description: feat.description, category: feat.category, note: featNote(feat, bonus, level) }];
   });
 
   const featEffects = featIds.flatMap((id) => feats.find((feat) => feat.id === id)?.effects ?? []);
@@ -309,6 +312,10 @@ export function derive(
     featEffects
       .filter((effect): effect is InitiativeBonus => effect.kind === 'initiativeBonus')
       .reduce((total, effect) => total + initiativeAmount(effect, bonus), 0);
+
+  const hitPointMaxBonus = featEffects
+    .filter((effect): effect is HitPointMaxBonus => effect.kind === 'hitPointMaxBonus')
+    .reduce((total, effect) => total + effect.amountPerLevel * level, 0);
 
   const featAbilities: SheetAbility[] = featEffects
     .filter((effect): effect is GrantAbility => effect.kind === 'grantAbility')
@@ -329,7 +336,7 @@ export function derive(
     initiative,
     abilityScores,
     abilityModifiers,
-    hitPoints: hitPointsFor(character, classes, abilityModifiers.con),
+    hitPoints: hitPointsFor(character, classes, abilityModifiers.con) + hitPointMaxBonus,
     skills,
     features: features
       .filter(

@@ -67,7 +67,7 @@ export const tough: Feat = {
   name: 'Tough',
   description: 'Your Hit Point maximum increases by an amount equal to twice your character level.',
   category: 'origin',
-  effects: [],
+  effects: [{ kind: 'hitPointMaxBonus', amountPerLevel: 2 }],
 };
 
 export const originFeats: Feat[] = [alert, lucky, musician, savageAttacker, skilled, tavernBrawler, tough];

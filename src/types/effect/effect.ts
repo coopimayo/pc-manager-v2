@@ -17,4 +17,5 @@ export type Effect =
   | { kind: 'replaceFeature'; featureId: string }
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType }
   | { kind: 'initiativeBonus'; amount: number | 'proficiencyBonus' }
+  | { kind: 'hitPointMaxBonus'; amountPerLevel: number }
   | { kind: 'unarmedStrikeDamage'; count: number; die: Die };

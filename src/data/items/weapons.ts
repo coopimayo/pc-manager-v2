@@ -88,6 +88,18 @@ export const spear: Weapon = {
   range: { normal: 20, long: 60 },
 };
 
+export const quarterstaff: Weapon = {
+  id: 'quarterstaff',
+  name: 'Quarterstaff',
+  cost: { amount: 2, unit: 'sp' },
+  weight: 4,
+  category: 'simple',
+  attackType: 'melee',
+  damage: { count: 1, die: 'd6', type: 'bludgeoning' },
+  properties: ['versatile'],
+  mastery: 'topple',
+};
+
 export const shortbow: Weapon = {
   id: 'shortbow',
   name: 'Shortbow',

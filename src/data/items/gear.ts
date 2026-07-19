@@ -1,11 +1,19 @@
 import type { Item } from '../../types/item';
 
 export const arrows: Item = { id: 'arrows', name: 'Arrows (20)', cost: { amount: 1, unit: 'gp' }, weight: 1 };
+export const artisansTools: Item = { id: 'artisans-tools', name: "Artisan's Tools", cost: { amount: 10, unit: 'gp' }, weight: 5 };
 export const bedroll: Item = { id: 'bedroll', name: 'Bedroll', cost: { amount: 1, unit: 'gp' }, weight: 7 };
 export const bolts: Item = { id: 'bolts', name: 'Bolts (20)', cost: { amount: 1, unit: 'gp' }, weight: 1.5 };
+export const bookOfHistory: Item = { id: 'book-of-history', name: 'Book (History)', cost: { amount: 25, unit: 'gp' }, weight: 5 };
+export const bookOfPhilosophy: Item = { id: 'book-of-philosophy', name: 'Book (Philosophy)', cost: { amount: 25, unit: 'gp' }, weight: 5 };
+export const bookOfPrayers: Item = { id: 'book-of-prayers', name: 'Book (Prayers)', cost: { amount: 25, unit: 'gp' }, weight: 5 };
 export const calligraphersSupplies: Item = { id: 'calligraphers-supplies', name: "Calligrapher's Supplies", cost: { amount: 10, unit: 'gp' }, weight: 5 };
 export const carpentersTools: Item = { id: 'carpenters-tools', name: "Carpenter's Tools", cost: { amount: 8, unit: 'gp' }, weight: 6 };
+export const cartographersTools: Item = { id: 'cartographers-tools', name: "Cartographer's Tools", cost: { amount: 15, unit: 'gp' }, weight: 6 };
 export const costume: Item = { id: 'costume', name: 'Costume', cost: { amount: 5, unit: 'gp' }, weight: 4 };
+export const fishingTackle: Item = { id: 'fishing-tackle', name: 'Fishing Tackle', cost: { amount: 1, unit: 'gp' }, weight: 4 };
+export const herbalismKit: Item = { id: 'herbalism-kit', name: 'Herbalism Kit', cost: { amount: 5, unit: 'gp' }, weight: 3 };
+export const holySymbol: Item = { id: 'holy-symbol', name: 'Holy Symbol', cost: { amount: 5, unit: 'gp' }, weight: 1 };
 export const crowbar: Item = { id: 'crowbar', name: 'Crowbar', cost: { amount: 2, unit: 'gp' }, weight: 5 };
 export const fineClothes: Item = { id: 'fine-clothes', name: 'Fine Clothes', cost: { amount: 15, unit: 'gp' }, weight: 6 };
 export const forgeryKit: Item = { id: 'forgery-kit', name: 'Forgery Kit', cost: { amount: 15, unit: 'gp' }, weight: 5 };
@@ -18,10 +26,14 @@ export const musicalInstrument: Item = { id: 'musical-instrument', name: 'Musica
 export const navigatorsTools: Item = { id: 'navigators-tools', name: "Navigator's Tools", cost: { amount: 25, unit: 'gp' }, weight: 2 };
 export const oilFlask: Item = { id: 'oil-flask', name: 'Oil (Flask)', cost: { amount: 1, unit: 'sp' }, weight: 1 };
 export const parchment: Item = { id: 'parchment', name: 'Parchment (12 Sheets)', cost: { amount: 12, unit: 'sp' }, weight: 0 };
+export const parchmentEight: Item = { id: 'parchment-8', name: 'Parchment (8 Sheets)', cost: { amount: 8, unit: 'sp' }, weight: 0 };
+export const parchmentTen: Item = { id: 'parchment-10', name: 'Parchment (10 Sheets)', cost: { amount: 10, unit: 'sp' }, weight: 0 };
 export const perfume: Item = { id: 'perfume', name: 'Perfume', cost: { amount: 5, unit: 'gp' }, weight: 0 };
 export const pouch: Item = { id: 'pouch', name: 'Pouch', cost: { amount: 5, unit: 'sp' }, weight: 1 };
+export const robe: Item = { id: 'robe', name: 'Robe', cost: { amount: 1, unit: 'gp' }, weight: 4 };
 export const rope: Item = { id: 'rope', name: 'Rope (50 Feet)', cost: { amount: 1, unit: 'gp' }, weight: 5 };
 export const shovel: Item = { id: 'shovel', name: 'Shovel', cost: { amount: 2, unit: 'gp' }, weight: 5 };
+export const tent: Item = { id: 'tent', name: 'Tent', cost: { amount: 2, unit: 'gp' }, weight: 20 };
 export const thievesTools: Item = { id: 'thieves-tools', name: "Thieves' Tools", cost: { amount: 25, unit: 'gp' }, weight: 1 };
 export const quiver: Item = { id: 'quiver', name: 'Quiver', cost: { amount: 1, unit: 'gp' }, weight: 1 };
 export const dungeoneersPack: Item = { id: 'dungeoneers-pack', name: "Dungeoneer's Pack", cost: { amount: 12, unit: 'gp' }, weight: 55 };

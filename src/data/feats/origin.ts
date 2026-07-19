@@ -9,6 +9,32 @@ export const alert: Feat = {
   effects: [{ kind: 'initiativeBonus', amount: 'proficiencyBonus' }],
 };
 
+export const crafter: Feat = {
+  id: 'crafter',
+  name: 'Crafter',
+  description:
+    "You gain proficiency with three Artisan's Tools of your choice, buy nonmagical items at a 20 percent discount, and can craft a piece of simple gear when you finish a Long Rest.",
+  category: 'origin',
+  effects: [],
+};
+
+export const healer: Feat = {
+  id: 'healer',
+  name: 'Healer',
+  description:
+    "You can patch up allies with a Healer's Kit, and whenever you roll a die to restore Hit Points you can reroll 1s.",
+  category: 'origin',
+  effects: [
+    {
+      kind: 'grantAbility',
+      name: 'Battle Medic',
+      description:
+        "As a Utilize action, expend one use of a Healer's Kit to tend to a creature within 5 feet. It can expend one of its Hit Dice; roll that die, and it regains Hit Points equal to the roll plus your Proficiency Bonus.",
+      activation: { type: 'action' },
+    },
+  ],
+};
+
 export const lucky: Feat = {
   id: 'lucky',
   name: 'Lucky',
@@ -26,6 +52,18 @@ export const lucky: Feat = {
     },
   ],
 };
+
+const magicInitiate = (list: 'Cleric' | 'Druid' | 'Wizard'): Feat => ({
+  id: `magic-initiate-${list.toLowerCase()}`,
+  name: `Magic Initiate (${list})`,
+  description: `You learn two cantrips and one level 1 spell from the ${list} spell list, and once per Long Rest you can cast that spell without a spell slot.`,
+  category: 'origin',
+  effects: [],
+});
+
+export const magicInitiateCleric = magicInitiate('Cleric');
+export const magicInitiateDruid = magicInitiate('Druid');
+export const magicInitiateWizard = magicInitiate('Wizard');
 
 export const musician: Feat = {
   id: 'musician',
@@ -70,4 +108,17 @@ export const tough: Feat = {
   effects: [{ kind: 'hitPointMaxBonus', amountPerLevel: 2 }],
 };
 
-export const originFeats: Feat[] = [alert, lucky, musician, savageAttacker, skilled, tavernBrawler, tough];
+export const originFeats: Feat[] = [
+  alert,
+  crafter,
+  healer,
+  lucky,
+  magicInitiateCleric,
+  magicInitiateDruid,
+  magicInitiateWizard,
+  musician,
+  savageAttacker,
+  skilled,
+  tavernBrawler,
+  tough,
+];

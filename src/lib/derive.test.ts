@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { soldier } from '../data/backgrounds/soldier';
 import { exampleFighter } from '../data/characters/example-fighter';
 import { veraQuickblade } from '../data/characters/vera-quickblade';
 import { champion } from '../data/classes/fighter/champion';
 import { fighter } from '../data/classes/fighter/fighter';
 import { feats } from '../data/feats';
 import { weapons } from '../data/items';
+import { human } from '../data/species/human';
 import { abilityModifier, derive, proficiencyBonus } from './derive';
 
 describe('abilityModifier', () => {
@@ -164,6 +166,60 @@ describe('derive', () => {
       );
       expect(boosted.feats).toEqual([]);
       expect(boosted.abilityScores.str).toBe(18);
+    });
+  });
+
+  describe('species and background', () => {
+    const resolved = derive(exampleFighter, [fighter], weapons, feats, [], [human], [soldier]);
+
+    it('names the resolved species and background', () => {
+      expect(resolved.species).toBe('Human');
+      expect(resolved.background).toBe('Soldier');
+    });
+
+    it('leaves them off when the ids do not resolve', () => {
+      expect(sheet.species).toBeUndefined();
+      expect(sheet.background).toBeUndefined();
+      expect(sheet.traits).toEqual([]);
+    });
+
+    it('surfaces the species traits', () => {
+      expect(resolved.traits.map((trait) => trait.name)).toEqual([
+        'Resourceful',
+        'Skillful',
+        'Versatile',
+      ]);
+    });
+
+    it('marks the background skills proficient alongside the chosen ones', () => {
+      const scholar = derive(
+        { ...exampleFighter, skillProficiencies: ['history'] },
+        [fighter],
+        weapons,
+        feats,
+        [],
+        [human],
+        [soldier],
+      );
+      const proficient = scholar.skills
+        .filter((entry) => entry.proficient)
+        .map((entry) => entry.skill);
+      expect(proficient.sort()).toEqual(['athletics', 'history', 'intimidation']);
+    });
+
+    it('folds the background origin feat in once, even when also taken directly', () => {
+      expect(resolved.feats.map((feat) => feat.name)).toEqual(['Savage Attacker']);
+
+      const doubled = derive(
+        { ...exampleFighter, featIds: ['savage-attacker'] },
+        [fighter],
+        weapons,
+        feats,
+        [],
+        [human],
+        [soldier],
+      );
+      expect(doubled.feats.map((feat) => feat.name)).toEqual(['Savage Attacker']);
     });
   });
 

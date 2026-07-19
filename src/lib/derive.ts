@@ -1,6 +1,7 @@
-import type { Ability, Character, Die, Effect, Feat, FeatCategory, LevelScaled, Skill } from '../types';
+import type { Ability, Background, Character, Die, Effect, Feat, FeatCategory, LevelScaled, Skill } from '../types';
 import type { Class, ClassFeature, Subclass } from '../types/class';
 import type { Weapon } from '../types/item';
+import type { Species } from '../types/species';
 import type {
   Sheet,
   SheetAbility,
@@ -79,7 +80,11 @@ function featNote(feat: Feat): string | undefined {
   return applied.length ? `Already included in your totals: ${applied.join(', ')}.` : undefined;
 }
 
-function abilityScoresFor(character: Character, feats: Feat[]): Record<Ability, number> {
+function abilityScoresFor(
+  character: Character,
+  feats: Feat[],
+  featIds: string[],
+): Record<Ability, number> {
   const totals: Record<Ability, number> = { ...character.abilityScores };
   const add = (ability: Ability, amount: number) => {
     totals[ability] = Math.min(20, totals[ability] + amount);
@@ -88,7 +93,7 @@ function abilityScoresFor(character: Character, feats: Feat[]): Record<Ability, 
   const chosen = character.abilityScoreIncreases ?? {};
   (Object.keys(chosen) as Ability[]).forEach((ability) => add(ability, chosen[ability] ?? 0));
 
-  character.featIds.forEach((id) => {
+  featIds.forEach((id) => {
     feats
       .find((feat) => feat.id === id)
       ?.effects.forEach((effect) => {
@@ -153,10 +158,11 @@ function attacksFor(
   character: Character,
   weapons: Weapon[],
   feats: Feat[],
+  featIds: string[],
   modifiers: Record<Ability, number>,
   bonus: number,
 ): SheetAttack[] {
-  const attackBonuses = character.featIds
+  const attackBonuses = featIds
     .flatMap((id) => feats.find((feat) => feat.id === id)?.effects ?? [])
     .filter((effect): effect is AttackRollBonus => effect.kind === 'attackRollBonus');
 
@@ -191,11 +197,22 @@ export function derive(
   weapons: Weapon[] = [],
   feats: Feat[] = [],
   subclasses: Subclass[] = [],
+  species: Species[] = [],
+  backgrounds: Background[] = [],
 ): Sheet {
   const level = character.classes.reduce((total, taken) => total + taken.level, 0);
   const bonus = proficiencyBonus(level);
 
-  const abilityScores = abilityScoresFor(character, feats);
+  const chosenSpecies = species.find((entry) => entry.id === character.speciesId);
+  const chosenBackground = backgrounds.find((entry) => entry.id === character.backgroundId);
+  const featIds = [
+    ...new Set([
+      ...(chosenBackground ? [chosenBackground.featId] : []),
+      ...character.featIds,
+    ]),
+  ];
+
+  const abilityScores = abilityScoresFor(character, feats, featIds);
   const abilityModifiers: Record<Ability, number> = {
     str: abilityModifier(abilityScores.str),
     dex: abilityModifier(abilityScores.dex),
@@ -207,7 +224,9 @@ export function derive(
 
   const skills: SheetSkill[] = (Object.keys(skillAbilities) as Skill[]).map((skill) => {
     const ability = skillAbilities[skill];
-    const proficient = character.skillProficiencies.includes(skill);
+    const proficient =
+      character.skillProficiencies.includes(skill) ||
+      (chosenBackground?.skillProficiencies.includes(skill) ?? false);
     return {
       skill,
       ability,
@@ -238,7 +257,7 @@ export function derive(
     return [{ name: found.name, subclass: subclass?.name, level: entry.level }];
   });
 
-  const characterFeats: SheetFeat[] = character.featIds.flatMap((id) => {
+  const characterFeats: SheetFeat[] = featIds.flatMap((id) => {
     const feat = feats.find((entry) => entry.id === id);
     if (!feat || isAbilityScoreImprovement(feat)) return [];
     return [{ name: feat.name, description: feat.description, category: feat.category, note: featNote(feat) }];
@@ -246,6 +265,8 @@ export function derive(
 
   return {
     name: character.name,
+    species: chosenSpecies?.name,
+    background: chosenBackground?.name,
     classes: taken,
     level,
     proficiencyBonus: bonus,
@@ -259,8 +280,13 @@ export function derive(
           !grantsAbility(feature) && !grantedFeatCategory(feature) && !grantsSubclass(feature),
       )
       .map(sheetFeature),
+    traits: (chosenSpecies?.traits ?? []).map(({ id, name, description }) => ({
+      id,
+      name,
+      description,
+    })),
     feats: characterFeats,
     abilities,
-    attacks: attacksFor(character, weapons, feats, abilityModifiers, bonus),
+    attacks: attacksFor(character, weapons, feats, featIds, abilityModifiers, bonus),
   };
 }

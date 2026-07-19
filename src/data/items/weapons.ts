@@ -1,5 +1,43 @@
 import type { Weapon } from '../../types/item';
 
+export const dagger: Weapon = {
+  id: 'dagger',
+  name: 'Dagger',
+  cost: { amount: 2, unit: 'gp' },
+  weight: 1,
+  category: 'simple',
+  attackType: 'melee',
+  damage: { count: 1, die: 'd4', type: 'piercing' },
+  properties: ['finesse', 'light', 'thrown'],
+  mastery: 'nick',
+  range: { normal: 20, long: 60 },
+};
+
+export const sickle: Weapon = {
+  id: 'sickle',
+  name: 'Sickle',
+  cost: { amount: 1, unit: 'gp' },
+  weight: 2,
+  category: 'simple',
+  attackType: 'melee',
+  damage: { count: 1, die: 'd4', type: 'slashing' },
+  properties: ['light'],
+  mastery: 'nick',
+};
+
+export const lightCrossbow: Weapon = {
+  id: 'light-crossbow',
+  name: 'Light Crossbow',
+  cost: { amount: 25, unit: 'gp' },
+  weight: 5,
+  category: 'simple',
+  attackType: 'ranged',
+  damage: { count: 1, die: 'd8', type: 'piercing' },
+  properties: ['ammunition', 'loading', 'two-handed'],
+  mastery: 'slow',
+  range: { normal: 80, long: 320 },
+};
+
 export const greatsword: Weapon = {
   id: 'greatsword',
   name: 'Greatsword',

@@ -202,6 +202,10 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
             <span className={styles.statLabel}>Proficiency</span>
             <strong className={styles.statValue}>{signed(sheet.proficiencyBonus)}</strong>
           </div>
+          <div className={styles.stat}>
+            <span className={styles.statLabel}>Initiative</span>
+            <strong className={styles.statValue}>{signed(sheet.initiative)}</strong>
+          </div>
         </div>
       </section>
 

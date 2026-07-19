@@ -14,6 +14,7 @@ export interface Sheet {
   classes: SheetClass[];
   level: number;
   proficiencyBonus: number;
+  initiative: number;
   abilityScores: Record<Ability, number>;
   abilityModifiers: Record<Ability, number>;
   hitPoints: number;

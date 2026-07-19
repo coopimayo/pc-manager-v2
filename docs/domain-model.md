@@ -190,7 +190,8 @@ type Effect =
   | { kind: 'grantFeat'; category: FeatCategory }                           // "choose a feat" — value = the category offered
   | { kind: 'grantSubclass' }                                               // "choose a subclass" — the class is implied by the feature
   | { kind: 'replaceFeature'; featureId: string }                          // this feature supersedes an earlier one, dropping it from the sheet
-  | { kind: 'attackRollBonus'; amount: number; attackType: AttackType };
+  | { kind: 'attackRollBonus'; amount: number; attackType: AttackType }
+  | { kind: 'initiativeBonus'; amount: number | 'proficiencyBonus' };
 ```
 
 `grantAbility` covers anything the character can *do*. Rather than a separate
@@ -212,7 +213,7 @@ on a Short Rest and all of them on a Long Rest:
 
 ```ts
 interface RechargeRule { on: 'short-rest' | 'long-rest' | 'turn'; amount: number | 'all'; }
-interface Uses { count: number | LevelScaled; recharge: RechargeRule[]; }
+interface Uses { count: number | LevelScaled | 'proficiencyBonus'; recharge: RechargeRule[]; }
 ```
 
 `count` (and `grantWeaponMastery.count`) may be a `LevelScaled` table rather than a
@@ -222,7 +223,10 @@ without being re-granted. A `LevelScaled` value is the `value` of the highest
 `step` whose `at` does not exceed the level. The derivation layer resolves it
 against the **class level the feature came from** — not total character level, so a
 Fighter 1 / Wizard 9 still has two uses of Second Wind — and the derived `Sheet`
-only ever carries concrete numbers.
+only ever carries concrete numbers. `'proficiencyBonus'` covers resources that
+equal the character's proficiency bonus (Lucky's Luck Points); a feat-granted
+ability's `LevelScaled` count would resolve against total character level, since
+no class level applies.
 
 ### Items — [`item/`](../src/types/item)
 

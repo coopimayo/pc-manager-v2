@@ -19,15 +19,18 @@ type model. What exists today:
   Human species, the Soldier background, and two example characters.
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability scores with chosen and feat increases folded in (capped
-  at 20) and their modifiers, proficiency bonus, hit points, skill modifiers, the
-  character's feats (the Ability Score Improvement feat folds into the ability
-  totals rather than appearing as a card), the features at level — the chosen
-  subclass's features fold in by id — that aren't already shown as an ability, a
-  granted feat, or a subclass choice, abilities grouped by activation cost with
-  level-scaled uses resolved against class level, and weapon attacks with their
-  to-hit and damage (feat `attackRollBonus` effects fold into the to-hit). The
-  background's fixed skills and origin feat fold in by id, and the species
-  contributes its name and traits; ids that don't resolve are skipped.
+  at 20) and their modifiers, proficiency bonus, initiative (feat
+  `initiativeBonus` effects fold into the DEX modifier), hit points, skill
+  modifiers, the character's feats (the Ability Score Improvement feat folds into
+  the ability totals rather than appearing as a card), the features at level —
+  the chosen subclass's features fold in by id — that aren't already shown as an
+  ability, a granted feat, or a subclass choice, abilities grouped by activation
+  cost — granted by class features or feats — with level-scaled uses resolved
+  against class level and `'proficiencyBonus'` uses against the character's bonus
+  (Lucky's Luck Points), and weapon attacks with their to-hit and damage (feat
+  `attackRollBonus` effects fold into the to-hit). The background's fixed skills
+  and origin feat fold in by id, and the species contributes its name and traits;
+  ids that don't resolve are skipped.
 - **UI** (`src/pages/`, `src/components/`) — a dashboard listing characters, and a
   character sheet with a click-to-spend use tracker on each limited-use ability
   and a **Level Up** button that re-derives the sheet. Leveling into a feat slot

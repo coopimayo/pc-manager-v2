@@ -135,6 +135,45 @@ describe('derive', () => {
     });
   });
 
+  describe('initiative', () => {
+    it('is the dexterity modifier without a bonus', () => {
+      expect(derive(exampleFighter, [fighter]).initiative).toBe(1);
+    });
+
+    it('adds the proficiency bonus for Alert and notes it on the feat', () => {
+      const alert = derive({ ...exampleFighter, featIds: ['alert'] }, [fighter], weapons, feats);
+      expect(alert.initiative).toBe(3);
+      expect(alert.feats.find((feat) => feat.name === 'Alert')?.note).toBe(
+        'Already included in your totals: +2 to Initiative.',
+      );
+    });
+  });
+
+  describe('feat abilities', () => {
+    it('grants Luck Points from Lucky with uses equal to the proficiency bonus', () => {
+      const lucky = derive({ ...exampleFighter, featIds: ['lucky'] }, [fighter], weapons, feats);
+      expect(lucky.abilities.find((ability) => ability.name === 'Luck Points')).toEqual({
+        name: 'Luck Points',
+        description:
+          'Spend a Luck Point to give yourself Advantage on a d20 Test, or to impose Disadvantage on an attack roll made against you.',
+        activation: { type: 'free' },
+        uses: { count: 2, recharge: [{ on: 'long-rest', amount: 'all' }] },
+      });
+    });
+
+    it('scales Luck Points with the proficiency bonus at higher levels', () => {
+      const lucky = derive(
+        { ...exampleFighter, classes: [{ classId: 'fighter', level: 5 }], featIds: ['lucky'] },
+        [fighter],
+        weapons,
+        feats,
+      );
+      expect(
+        lucky.abilities.find((ability) => ability.name === 'Luck Points')?.uses?.count,
+      ).toBe(3);
+    });
+  });
+
   describe('feats', () => {
     const vera = derive(veraQuickblade, [fighter], weapons, feats);
 

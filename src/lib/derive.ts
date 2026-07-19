@@ -1,5 +1,6 @@
 import type { Ability, Background, Character, Die, Effect, Feat, FeatCategory, LevelScaled, Skill } from '../types';
 import type { Class, ClassFeature, Subclass } from '../types/class';
+import type { Uses } from '../types/effect';
 import type { Weapon } from '../types/item';
 import type { Species } from '../types/species';
 import type {
@@ -18,6 +19,7 @@ type GrantWeaponMastery = Extract<Effect, { kind: 'grantWeaponMastery' }>;
 type GrantFeat = Extract<Effect, { kind: 'grantFeat' }>;
 type ReplaceFeature = Extract<Effect, { kind: 'replaceFeature' }>;
 type AttackRollBonus = Extract<Effect, { kind: 'attackRollBonus' }>;
+type InitiativeBonus = Extract<Effect, { kind: 'initiativeBonus' }>;
 
 interface TakenFeature {
   feature: ClassFeature;
@@ -66,13 +68,30 @@ function isAbilityScoreImprovement(feat: Feat): boolean {
   return feat.effects.some((effect) => effect.kind === 'abilityScoreChoice');
 }
 
-function featNote(feat: Feat): string | undefined {
+function initiativeAmount(effect: InitiativeBonus, proficiency: number): number {
+  return effect.amount === 'proficiencyBonus' ? proficiency : effect.amount;
+}
+
+function resolveUses(
+  uses: Uses | undefined,
+  level: number,
+  proficiency: number,
+): SheetAbility['uses'] {
+  if (!uses) return undefined;
+  const count =
+    uses.count === 'proficiencyBonus' ? proficiency : resolveScaled(uses.count, level);
+  return { count, recharge: uses.recharge };
+}
+
+function featNote(feat: Feat, proficiency: number): string | undefined {
   const applied = feat.effects.flatMap((effect) => {
     switch (effect.kind) {
       case 'attackRollBonus':
         return [`+${effect.amount} to ${effect.attackType} attack rolls`];
       case 'abilityScoreIncrease':
         return [`+${effect.amount} ${effect.ability.toUpperCase()}`];
+      case 'initiativeBonus':
+        return [`+${initiativeAmount(effect, proficiency)} to Initiative`];
       default:
         return [];
     }
@@ -244,7 +263,7 @@ export function derive(
         name,
         description,
         activation,
-        uses: uses ? { count: resolveScaled(uses.count, classLevel), recharge: uses.recharge } : undefined,
+        uses: resolveUses(uses, classLevel, bonus),
       })),
   );
 
@@ -260,8 +279,25 @@ export function derive(
   const characterFeats: SheetFeat[] = featIds.flatMap((id) => {
     const feat = feats.find((entry) => entry.id === id);
     if (!feat || isAbilityScoreImprovement(feat)) return [];
-    return [{ name: feat.name, description: feat.description, category: feat.category, note: featNote(feat) }];
+    return [{ name: feat.name, description: feat.description, category: feat.category, note: featNote(feat, bonus) }];
   });
+
+  const featEffects = featIds.flatMap((id) => feats.find((feat) => feat.id === id)?.effects ?? []);
+
+  const initiative =
+    abilityModifiers.dex +
+    featEffects
+      .filter((effect): effect is InitiativeBonus => effect.kind === 'initiativeBonus')
+      .reduce((total, effect) => total + initiativeAmount(effect, bonus), 0);
+
+  const featAbilities: SheetAbility[] = featEffects
+    .filter((effect): effect is GrantAbility => effect.kind === 'grantAbility')
+    .map(({ name, description, activation, uses }) => ({
+      name,
+      description,
+      activation,
+      uses: resolveUses(uses, level, bonus),
+    }));
 
   return {
     name: character.name,
@@ -270,6 +306,7 @@ export function derive(
     classes: taken,
     level,
     proficiencyBonus: bonus,
+    initiative,
     abilityScores,
     abilityModifiers,
     hitPoints: hitPointsFor(character, classes, abilityModifiers.con),
@@ -286,7 +323,7 @@ export function derive(
       description,
     })),
     feats: characterFeats,
-    abilities,
+    abilities: [...abilities, ...featAbilities],
     attacks: attacksFor(character, weapons, feats, featIds, abilityModifiers, bonus),
   };
 }

@@ -6,7 +6,7 @@ export const alert: Feat = {
   description:
     'You gain a bonus to Initiative equal to your Proficiency Bonus, and you can swap Initiative with a willing ally.',
   category: 'origin',
-  effects: [],
+  effects: [{ kind: 'initiativeBonus', amount: 'proficiencyBonus' }],
 };
 
 export const lucky: Feat = {
@@ -15,7 +15,16 @@ export const lucky: Feat = {
   description:
     'You have Luck Points equal to your Proficiency Bonus to gain Advantage on a roll or impose Disadvantage on an attack against you.',
   category: 'origin',
-  effects: [],
+  effects: [
+    {
+      kind: 'grantAbility',
+      name: 'Luck Points',
+      description:
+        'Spend a Luck Point to give yourself Advantage on a d20 Test, or to impose Disadvantage on an attack roll made against you.',
+      activation: { type: 'free' },
+      uses: { count: 'proficiencyBonus', recharge: [{ on: 'long-rest', amount: 'all' }] },
+    },
+  ],
 };
 
 export const musician: Feat = {

@@ -75,7 +75,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Confirm' }));
 
     expect(screen.queryByText('Choose a feat to gain.')).not.toBeInTheDocument();
-    expect(screen.getByText('Fighter 4')).toBeInTheDocument();
+    expect(screen.getByText(/Fighter 4/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Feats' })).toBeInTheDocument();
     expect(screen.queryByText('Ability Score Improvement')).not.toBeInTheDocument();
 
@@ -100,7 +100,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Confirm' }));
 
     expect(screen.queryByText('Choose a subclass.')).not.toBeInTheDocument();
-    expect(screen.getByText('Fighter 3')).toBeInTheDocument();
+    expect(screen.getByText(/Fighter 3/)).toBeInTheDocument();
     expect(screen.getByText('Improved Critical')).toBeInTheDocument();
     expect(screen.getByText('Remarkable Athlete')).toBeInTheDocument();
   });
@@ -120,7 +120,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(screen.queryByText('Choose a feat to gain.')).not.toBeInTheDocument();
-    expect(screen.getByText('Fighter 3')).toBeInTheDocument();
+    expect(screen.getByText(/Fighter 3/)).toBeInTheDocument();
   });
 
   it('creates a new character and opens its sheet', async () => {
@@ -131,6 +131,11 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'New Character' })).toBeInTheDocument();
 
     await user.type(screen.getByLabelText('Name'), 'Torin Oakenshield');
+    await user.click(screen.getByRole('button', { name: /Human/ }));
+    await user.click(screen.getByRole('button', { name: /Soldier/ }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase CON' }));
     await user.click(screen.getByRole('button', { name: /Fighter/ }));
 
     await user.selectOptions(screen.getByLabelText('STR'), '15');
@@ -140,7 +145,7 @@ describe('App', () => {
     await user.selectOptions(screen.getByLabelText('WIS'), '12');
     await user.selectOptions(screen.getByLabelText('CHA'), '8');
 
-    await user.click(screen.getByRole('button', { name: 'Athletics' }));
+    await user.click(screen.getByRole('button', { name: 'Acrobatics' }));
     await user.click(screen.getByRole('button', { name: 'Perception' }));
     await user.click(screen.getByRole('button', { name: /Option A/ }));
     await user.click(screen.getByRole('button', { name: /Archery/ }));
@@ -148,11 +153,19 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Create Character' }));
 
     expect(screen.getByRole('heading', { name: 'Torin Oakenshield' })).toBeInTheDocument();
-    expect(screen.getByText('Fighter 1')).toBeInTheDocument();
+    expect(screen.getByText('Human · Soldier · Fighter 1')).toBeInTheDocument();
     expect(screen.getByText('Greatsword')).toBeInTheDocument();
-    expect(screen.getByText('2d6 + 2 slashing')).toBeInTheDocument();
+    expect(screen.getByText('2d6 + 3 slashing')).toBeInTheDocument();
     expect(screen.getByText('Second Wind')).toBeInTheDocument();
     expect(screen.getByText('Archery')).toBeInTheDocument();
+    expect(screen.getByText('Savage Attacker')).toBeInTheDocument();
+    expect(screen.getByText('Resourceful')).toBeInTheDocument();
+
+    const abilityScores = screen
+      .getByRole('heading', { name: 'Ability Scores' })
+      .closest('section') as HTMLElement;
+    expect(within(abilityScores).getByText('17')).toBeInTheDocument();
+    expect(within(abilityScores).getByText('15')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /All characters/ }));
     const card = screen.getByRole('button', { name: /Torin Oakenshield/ });
@@ -169,6 +182,8 @@ describe('App', () => {
     expect(create()).toBeDisabled();
 
     await user.type(screen.getByLabelText('Name'), 'Torin');
+    await user.click(screen.getByRole('button', { name: /Human/ }));
+    await user.click(screen.getByRole('button', { name: /Soldier/ }));
     await user.click(screen.getByRole('button', { name: /Fighter/ }));
 
     await user.selectOptions(screen.getByLabelText('STR'), '15');
@@ -178,14 +193,18 @@ describe('App', () => {
     await user.selectOptions(screen.getByLabelText('WIS'), '12');
     await user.selectOptions(screen.getByLabelText('CHA'), '8');
 
-    await user.click(screen.getByRole('button', { name: 'Athletics' }));
+    await user.click(screen.getByRole('button', { name: 'Acrobatics' }));
     await user.click(screen.getByRole('button', { name: 'Perception' }));
+    expect(screen.getByRole('button', { name: 'Athletics' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'History' })).toBeDisabled();
 
     await user.click(screen.getByRole('button', { name: /Option A/ }));
+    await user.click(screen.getByRole('button', { name: /Archery/ }));
     expect(create()).toBeDisabled();
 
-    await user.click(screen.getByRole('button', { name: /Archery/ }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase DEX' }));
+    await user.click(screen.getByRole('button', { name: 'Increase CON' }));
     expect(create()).toBeEnabled();
   });
 

@@ -2,9 +2,11 @@ import { useState } from 'react';
 
 import { FeatChoiceDialog } from '../../components/FeatChoiceDialog';
 import { SubclassChoiceDialog } from '../../components/SubclassChoiceDialog';
+import { backgrounds } from '../../data/backgrounds';
 import { classes, subclasses } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
+import { species } from '../../data/species';
 import { derive, grantedFeatCategory, grantsSubclass } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
 import type { Ability, Character } from '../../types';
@@ -97,18 +99,25 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
     character: Character;
     feature: ClassFeature;
   } | null>(null);
-  const sheet = derive(character, classes, weapons, feats, subclasses);
+  const sheet = derive(character, classes, weapons, feats, subclasses, species, backgrounds);
   const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
   const subclassLine = sheet.classes
     .map((entry) => entry.subclass)
     .filter((name): name is string => Boolean(name))
     .join(' / ');
+  const originLine = [sheet.species, sheet.background]
+    .filter((name): name is string => Boolean(name))
+    .join(' · ');
   const canLevelUp = sheet.level < 20;
+  const backgroundFeatId = backgrounds.find(
+    (entry) => entry.id === character.backgroundId,
+  )?.featId;
 
   const pendingOptions = pending
     ? feats.filter(
         (feat) =>
           feat.category === grantedFeatCategory(pending.feature) &&
+          feat.id !== backgroundFeatId &&
           !pending.character.featIds.includes(feat.id),
       )
     : [];
@@ -139,7 +148,9 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
     const featOptions = featFeature
       ? feats.filter(
           (feat) =>
-            feat.category === grantedFeatCategory(featFeature) && !next.featIds.includes(feat.id),
+            feat.category === grantedFeatCategory(featFeature) &&
+            feat.id !== backgroundFeatId &&
+            !next.featIds.includes(feat.id),
         )
       : [];
     if (featFeature && featOptions.length > 0) {
@@ -197,7 +208,9 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
 
       <header className={styles.header}>
         <h1 className={styles.title}>{sheet.name}</h1>
-        <p className={styles.subtitle}>{summary}</p>
+        <p className={styles.subtitle}>
+          {originLine ? `${originLine} · ${summary}` : summary}
+        </p>
         {subclassLine ? <p className={styles.subclass}>{subclassLine}</p> : null}
       </header>
 
@@ -320,6 +333,23 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
           ))}
         </ul>
       </section>
+
+      {sheet.traits.length > 0 ? (
+        <section className={styles.section}>
+          <h2 className={styles.heading}>Traits</h2>
+          <ul className={styles.cards}>
+            {sheet.traits.map((trait) => (
+              <li key={trait.id} className={styles.card}>
+                <div className={styles.cardHead}>
+                  <strong>{trait.name}</strong>
+                  <span className={styles.badge}>{sheet.species}</span>
+                </div>
+                <p className={styles.cardBody}>{trait.description}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Feats</h2>

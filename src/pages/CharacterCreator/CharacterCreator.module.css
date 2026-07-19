@@ -172,6 +172,46 @@
   color: var(--color-text-muted);
 }
 
+.allocation {
+  margin-top: 1rem;
+}
+
+.bonusValue {
+  flex: 1;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.stepper {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.step {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--color-text-muted);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.step:hover:not(:disabled) {
+  border-color: var(--color-text);
+}
+
+.step:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .skillGrid {
   list-style: none;
   margin: 0;

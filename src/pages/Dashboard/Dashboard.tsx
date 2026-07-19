@@ -1,4 +1,6 @@
+import { backgrounds } from '../../data/backgrounds';
 import { classes, subclasses } from '../../data/classes';
+import { species } from '../../data/species';
 import { derive } from '../../lib/derive';
 import type { Character } from '../../types';
 import styles from './Dashboard.module.css';
@@ -29,7 +31,7 @@ export function Dashboard({ characters, onSelect, onCreate }: DashboardProps) {
       ) : (
         <ul className={styles.grid}>
           {characters.map((character) => {
-            const sheet = derive(character, classes, [], [], subclasses);
+            const sheet = derive(character, classes, [], [], subclasses, species, backgrounds);
             const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
 
             return (

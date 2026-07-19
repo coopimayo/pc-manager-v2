@@ -1,8 +1,10 @@
 import { useState } from 'react';
 
+import { backgrounds } from '../../data/backgrounds';
 import { classes } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
+import { species } from '../../data/species';
 import { abilityModifier, grantedFeatCategory } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
 import type { Ability, Character, Skill } from '../../types';
@@ -11,6 +13,8 @@ import styles from './CharacterCreator.module.css';
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const standardArray = [15, 14, 13, 12, 10, 8];
+const backgroundPoints = 3;
+const backgroundMaxPerAbility = 2;
 
 function slugify(value: string): string {
   return value
@@ -40,14 +44,17 @@ interface CharacterCreatorProps {
 
 export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCreatorProps) {
   const [name, setName] = useState('');
-  const [species, setSpecies] = useState('');
-  const [background, setBackground] = useState('');
+  const [speciesId, setSpeciesId] = useState<string | null>(null);
+  const [backgroundId, setBackgroundId] = useState<string | null>(null);
+  const [bonuses, setBonuses] = useState<Partial<Record<Ability, number>>>({});
   const [classId, setClassId] = useState<string | null>(null);
   const [scores, setScores] = useState<Partial<Record<Ability, number>>>({});
   const [skills, setSkills] = useState<Skill[]>([]);
   const [equipmentLabel, setEquipmentLabel] = useState<string | null>(null);
   const [featChoices, setFeatChoices] = useState<Record<string, string>>({});
 
+  const chosenSpecies = species.find((entry) => entry.id === speciesId);
+  const chosenBackground = backgrounds.find((entry) => entry.id === backgroundId);
   const chosen = classes.find((entry) => entry.id === classId);
   const featFeatures = (chosen?.features ?? []).filter(
     (feature) => feature.level === 1 && grantedFeatCategory(feature),
@@ -55,14 +62,28 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const equipment = chosen?.startingEquipment.from.find((pkg) => pkg.label === equipmentLabel);
   const assigned = new Set(Object.values(scores));
   const scoresComplete = abilityOrder.every((ability) => scores[ability] !== undefined);
+  const grantedSkills = chosenBackground?.skillProficiencies ?? [];
+  const bonusSpent = abilityOrder.reduce((total, ability) => total + (bonuses[ability] ?? 0), 0);
+  const bonusRemaining = backgroundPoints - bonusSpent;
 
   const ready =
     name.trim() !== '' &&
+    chosenSpecies !== undefined &&
+    chosenBackground !== undefined &&
+    bonusRemaining === 0 &&
     chosen !== undefined &&
     scoresComplete &&
     skills.length === chosen.skillProficiencies.choose &&
     equipment !== undefined &&
     featFeatures.every((feature) => featChoices[feature.id] !== undefined);
+
+  function selectBackground(id: string) {
+    if (id === backgroundId) return;
+    setBackgroundId(id);
+    setBonuses({});
+    const granted = backgrounds.find((entry) => entry.id === id)?.skillProficiencies ?? [];
+    setSkills((current) => current.filter((skill) => !granted.includes(skill)));
+  }
 
   function selectClass(id: string) {
     if (id === classId) return;
@@ -70,6 +91,10 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
     setSkills([]);
     setEquipmentLabel(null);
     setFeatChoices({});
+  }
+
+  function stepBonus(ability: Ability, delta: number) {
+    setBonuses((current) => ({ ...current, [ability]: (current[ability] ?? 0) + delta }));
   }
 
   function assignScore(ability: Ability, raw: string) {
@@ -88,14 +113,15 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   }
 
   function create() {
-    if (!chosen || !equipment || !scoresComplete) return;
+    if (!chosen || !chosenSpecies || !chosenBackground || !equipment || !scoresComplete) return;
     onCreate({
       id: uniqueId(name, takenIds),
       name: name.trim(),
-      speciesId: slugify(species),
-      backgroundId: slugify(background),
+      speciesId: chosenSpecies.id,
+      backgroundId: chosenBackground.id,
       classes: [{ classId: chosen.id, level: 1 }],
       abilityScores: scores as Record<Ability, number>,
+      abilityScoreIncreases: { ...bonuses },
       skillProficiencies: skills,
       featIds: featFeatures.flatMap((feature) => {
         const featId = featChoices[feature.id];
@@ -132,25 +158,90 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
               placeholder="Bram Stonefist"
             />
           </label>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Species</span>
-            <input
-              className={styles.input}
-              value={species}
-              onChange={(event) => setSpecies(event.target.value)}
-              placeholder="Human"
-            />
-          </label>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Background</span>
-            <input
-              className={styles.input}
-              value={background}
-              onChange={(event) => setBackground(event.target.value)}
-              placeholder="Soldier"
-            />
-          </label>
         </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.heading}>Species</h2>
+        <ul className={styles.options}>
+          {species.map((entry) => {
+            const selected = entry.id === speciesId;
+            return (
+              <li key={entry.id}>
+                <button
+                  type="button"
+                  className={selected ? styles.optionSelected : styles.option}
+                  aria-pressed={selected}
+                  onClick={() => setSpeciesId(entry.id)}
+                >
+                  <span className={styles.optionName}>{entry.name}</span>
+                  <span className={styles.optionDescription}>{entry.description}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.heading}>Background</h2>
+        <ul className={styles.options}>
+          {backgrounds.map((entry) => {
+            const selected = entry.id === backgroundId;
+            return (
+              <li key={entry.id}>
+                <button
+                  type="button"
+                  className={selected ? styles.optionSelected : styles.option}
+                  aria-pressed={selected}
+                  onClick={() => selectBackground(entry.id)}
+                >
+                  <span className={styles.optionName}>{entry.name}</span>
+                  <span className={styles.optionDescription}>{entry.description}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        {chosenBackground ? (
+          <div className={styles.allocation}>
+            <p className={styles.hint}>
+              Increase one {chosenBackground.name} ability by 2 and another by 1, or all three by 1 —{' '}
+              {bonusRemaining} point{bonusRemaining === 1 ? '' : 's'} left.
+            </p>
+            <ul className={styles.abilities}>
+              {chosenBackground.abilityScores.map((ability) => {
+                const added = bonuses[ability] ?? 0;
+                return (
+                  <li key={ability} className={styles.ability}>
+                    <span className={styles.abilityName}>{ability.toUpperCase()}</span>
+                    <span className={styles.bonusValue}>{added > 0 ? `+${added}` : '—'}</span>
+                    <span className={styles.stepper}>
+                      <button
+                        type="button"
+                        className={styles.step}
+                        aria-label={`Decrease ${ability.toUpperCase()}`}
+                        disabled={added <= 0}
+                        onClick={() => stepBonus(ability, -1)}
+                      >
+                        −
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.step}
+                        aria-label={`Increase ${ability.toUpperCase()}`}
+                        disabled={bonusRemaining <= 0 || added >= backgroundMaxPerAbility}
+                        onClick={() => stepBonus(ability, 1)}
+                      >
+                        +
+                      </button>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
       </section>
 
       <section className={styles.section}>
@@ -179,10 +270,13 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
         <h2 className={styles.heading}>Ability Scores</h2>
         <p className={styles.hint}>
           Assign each value of the standard array ({standardArray.join(', ')}) to an ability.
+          Background increases fold into the totals.
         </p>
         <ul className={styles.abilities}>
           {abilityOrder.map((ability) => {
             const value = scores[ability];
+            const bonus = bonuses[ability] ?? 0;
+            const total = value === undefined ? undefined : Math.min(20, value + bonus);
             return (
               <li key={ability} className={styles.ability}>
                 <label className={styles.abilityName} htmlFor={`ability-${ability}`}>
@@ -206,7 +300,9 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
                   ))}
                 </select>
                 <span className={styles.abilityModifier}>
-                  {value === undefined ? '' : signed(abilityModifier(value))}
+                  {total === undefined
+                    ? ''
+                    : `${bonus > 0 ? `→ ${total} · ` : ''}${signed(abilityModifier(total))}`}
                 </span>
               </li>
             );
@@ -221,6 +317,13 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
             <p className={styles.hint}>
               Choose {chosen.skillProficiencies.choose} from the {chosen.name} list — {skills.length}{' '}
               of {chosen.skillProficiencies.choose} chosen.
+              {chosenBackground &&
+              chosen.skillProficiencies.from.some((skill) => grantedSkills.includes(skill))
+                ? ` ${chosenBackground.name} already grants ${chosen.skillProficiencies.from
+                    .filter((skill) => grantedSkills.includes(skill))
+                    .map(titleCase)
+                    .join(' and ')}.`
+                : ''}
             </p>
             <ul className={styles.skillGrid}>
               {chosen.skillProficiencies.from.map((skill) => {
@@ -232,7 +335,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
                       type="button"
                       className={selected ? styles.toggleSelected : styles.toggle}
                       aria-pressed={selected}
-                      disabled={!selected && full}
+                      disabled={grantedSkills.includes(skill) || (!selected && full)}
                       onClick={() => toggleSkill(skill)}
                     >
                       {titleCase(skill)}

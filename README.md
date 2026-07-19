@@ -15,7 +15,8 @@ type model. What exists today:
   [docs/domain-model.md](docs/domain-model.md).
 - **Content data** (`src/data/`) — the Fighter class through level 5, its
   Champion subclass, its starting equipment, a set of feats (fighting styles plus
-  general feats, including Ability Score Improvement), and two example characters.
+  general feats, including Ability Score Improvement), the Human species, the
+  Soldier background, and two example characters.
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability scores with chosen and feat increases folded in (capped
   at 20) and their modifiers, proficiency bonus, hit points, skill modifiers, the
@@ -24,16 +25,25 @@ type model. What exists today:
   subclass's features fold in by id — that aren't already shown as an ability, a
   granted feat, or a subclass choice, abilities grouped by activation cost with
   level-scaled uses resolved against class level, and weapon attacks with their
-  to-hit and damage (feat `attackRollBonus` effects fold into the to-hit).
+  to-hit and damage (feat `attackRollBonus` effects fold into the to-hit). The
+  background's fixed skills and origin feat fold in by id, and the species
+  contributes its name and traits; ids that don't resolve are skipped.
 - **UI** (`src/pages/`, `src/components/`) — a dashboard listing characters, and a
   character sheet with a click-to-spend use tracker on each limited-use ability
   and a **Level Up** button that re-derives the sheet. Leveling into a feat slot
   (like the level-4 ASI) opens a dialog to pick the feat and, for Ability Score
   Improvement, allocate the +2 / +1 increase; leveling into the level-3 subclass
-  feature opens a dialog to pick a subclass (e.g. Champion).
+  feature opens a dialog to pick a subclass (e.g. Champion). A **New Character**
+  creator, reached from the dashboard, builds a level-1 character: name, species,
+  background (with its +2/+1 ability allocation), class, standard-array ability
+  scores, the class's skill picks (skills the background already grants are
+  locked out), a starting-equipment package (its weapons become the sheet's
+  attacks) and any level-1 feat choice such as the Fighter's Fighting Style —
+  then opens the finished sheet.
 
-Not yet built: species and background data; spells; armour and AC; character
-*creation* (the app only reads hardcoded characters); persistence.
+Not yet built: more species and backgrounds (an example character references an
+Elf and a Criminal that don't exist yet); spells; armour and AC; persistence
+(created characters last only until a refresh).
 See [Not yet modelled](docs/domain-model.md#not-yet-modelled) for the rest.
 
 ## Development
@@ -58,13 +68,18 @@ src/
   types/              domain type model — see docs/domain-model.md
   data/               content instances and example characters
     classes/          the Fighter, its features, Champion subclass and equipment
+    species/          the Human
+    backgrounds/      the Soldier
     items/            weapons, armour and gear
     characters/       example characters
   lib/                framework-agnostic logic
     derive.ts         character + content -> Sheet
+    format.ts         shared display helpers (signed, titleCase)
     skill-abilities.ts  which ability governs each skill
-  pages/              one folder per screen, each with a barrel
+  pages/              one folder per screen; each index re-exports the
+                      component and holds the page's helper functions
     Dashboard/        the character list
+    CharacterCreator/ the new-character form
     CharacterSheet/   the derived sheet
   components/         reusable presentational components
     FeatChoiceDialog/ the level-up feat picker + ASI allocator
@@ -84,7 +99,8 @@ Player edits — spent ability uses, and **Level Up** (which raises the primary
 class level and can add a chosen feat with its ability-score increases, or a
 chosen subclass) — are
 held in local `useState` in `CharacterSheet`. Leaving the sheet discards them,
-since there is no persistence yet.
+since there is no persistence yet. Created characters are appended to a
+`useState` list in `App`, so they survive navigation but not a refresh.
 
 ## Domain model
 
@@ -121,6 +137,11 @@ it:
 - `EquipmentPackage.items` has no quantity, so "8 javelins" isn't expressible.
 - `derive` skips content ids it can't resolve, so a typo yields a plausible
   sheet with 0 hit points rather than an error.
+- A trait that offers a choice has no `Effect` kind, so the Human's Skillful
+  ("one skill of your choice") is display-only; its Versatile trait declares a
+  `grantFeat` for an origin feat, but nothing prompts for it yet and no
+  origin-category feats exist. The creator also ignores the background's
+  starting equipment and tool proficiency.
 - `ClassFeature` and a granted ability each carry their own name and
   description, so Second Wind's name and text are authored twice. `derive`
   drops a feature from `Sheet.features` once it grants an ability, which stops

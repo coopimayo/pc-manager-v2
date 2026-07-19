@@ -19,8 +19,8 @@ data: interfaces and string-literal unions, no behaviour.
    discriminated `Effect` union carried by `Feat`, `Trait` and `ClassFeature`.
    The `description` is for humans; `effects` is what the app acts on.
 5. **Nothing derived is stored.** Ability modifiers, proficiency bonus, AC, HP
-   and the like are computed from a character plus its content. (That
-   derivation layer is not built yet — see [Not yet modelled](#not-yet-modelled).)
+   and the like are computed from a character plus its content by
+   [`src/lib/derive.ts`](../src/lib/derive.ts).
 
 ## Shared primitives — [`common/`](../src/types/common)
 
@@ -330,20 +330,23 @@ siblings directly (`./weapon-category`) and cross folders via the other barrel
 
 Known gaps, roughly in priority order for making the app a functional creator:
 
-- **Real content data** — there are no instances yet (no Fighter, no Elf). A
-  `src/data/` vertical slice is the next practical step.
-- **Derivation layer** — a `derive(character, content)` that computes the sheet
-  (ability modifiers, proficiency bonus, AC, HP, saves, skill bonuses). Needs a
-  `Skill → Ability` map to compute skill modifiers.
+- **More content data** — the Fighter (with its Champion subclass), the Human
+  and the Soldier exist under `src/data/`; the example characters also
+  reference an Elf and a Criminal that don't.
 - **Spells & spellcasting** — no `Spell` type yet; `Effect.grantSpells`
   references spell ids that don't resolve to anything.
 - **Languages** and **conditions** — no types yet.
 - **Character detail** — chosen ability-score *bonuses* now live in
-  `Character.abilityScoreIncreases` (used by the ASI feat; the background +2/+1
-  allocation could reuse it but has no UI yet). Hit points are still not stored.
+  `Character.abilityScoreIncreases` (used by the ASI feat and the creator's
+  background +2/+1 allocation). Hit points are still not stored.
   Inventory is only `weaponIds` so far; armour, equipped state and quantities are
   unmodelled.
-- **The creator UI** — the React app is still the scaffold.
+- **The creator UI** — a level-1 creator exists (species, background with its
+  +2/+1 allocation, class, standard-array scores, skill picks, class starting
+  equipment, level-1 class feat choices). It doesn't yet offer the background's
+  starting equipment or tool proficiency, and species trait effects aren't
+  acted on (a "choose a skill" trait has no `Effect` kind, and the Human's
+  Versatile origin-feat grant has no origin-category feats to offer).
 
 ### Small fixes
 

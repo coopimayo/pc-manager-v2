@@ -247,24 +247,20 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Attacks</h2>
-        {sheet.attacks.length === 0 ? (
-          <p className={styles.empty}>No weapons equipped.</p>
-        ) : (
-          <ul className={styles.attacks}>
-            <li className={styles.attackHead}>
-              <span>Weapon</span>
-              <span>Attack</span>
-              <span>Damage</span>
+        <ul className={styles.attacks}>
+          <li className={styles.attackHead}>
+            <span>Weapon</span>
+            <span>Attack</span>
+            <span>Damage</span>
+          </li>
+          {sheet.attacks.map((attack) => (
+            <li key={attack.name} className={styles.attack}>
+              <span className={styles.attackName}>{attack.name}</span>
+              <span className={styles.attackBonus}>{signed(attack.attackBonus)}</span>
+              <span className={styles.attackDamage}>{describeDamage(attack.damage)}</span>
             </li>
-            {sheet.attacks.map((attack) => (
-              <li key={attack.name} className={styles.attack}>
-                <span className={styles.attackName}>{attack.name}</span>
-                <span className={styles.attackBonus}>{signed(attack.attackBonus)}</span>
-                <span className={styles.attackDamage}>{describeDamage(attack.damage)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+          ))}
+        </ul>
       </section>
 
       <section className={styles.section}>

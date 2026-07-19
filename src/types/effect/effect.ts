@@ -1,4 +1,4 @@
-import type { Ability, LevelScaled, Skill } from '../common';
+import type { Ability, Die, LevelScaled, Skill } from '../common';
 import type { FeatCategory } from '../feat/feat-category';
 import type { AttackType } from '../item';
 import type { Activation } from './activation';
@@ -16,4 +16,5 @@ export type Effect =
   | { kind: 'grantSubclass' }
   | { kind: 'replaceFeature'; featureId: string }
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType }
-  | { kind: 'initiativeBonus'; amount: number | 'proficiencyBonus' };
+  | { kind: 'initiativeBonus'; amount: number | 'proficiencyBonus' }
+  | { kind: 'unarmedStrikeDamage'; count: number; die: Die };

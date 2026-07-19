@@ -59,7 +59,7 @@ export const tavernBrawler: Feat = {
   description:
     'Your Unarmed Strikes deal 1d4 + Strength modifier damage, you can reroll 1s on their damage, and once per turn you can push a target 5 feet on a hit.',
   category: 'origin',
-  effects: [],
+  effects: [{ kind: 'unarmedStrikeDamage', count: 1, die: 'd4' }],
 };
 
 export const tough: Feat = {

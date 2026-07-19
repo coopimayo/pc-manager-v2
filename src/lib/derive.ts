@@ -1,7 +1,7 @@
 import type { Ability, Background, Character, Die, Effect, Feat, FeatCategory, LevelScaled, Skill } from '../types';
 import type { Class, ClassFeature, Subclass } from '../types/class';
 import type { Uses } from '../types/effect';
-import type { Weapon } from '../types/item';
+import type { AttackType, Weapon } from '../types/item';
 import type { Species } from '../types/species';
 import type {
   Sheet,
@@ -20,6 +20,7 @@ type GrantFeat = Extract<Effect, { kind: 'grantFeat' }>;
 type ReplaceFeature = Extract<Effect, { kind: 'replaceFeature' }>;
 type AttackRollBonus = Extract<Effect, { kind: 'attackRollBonus' }>;
 type InitiativeBonus = Extract<Effect, { kind: 'initiativeBonus' }>;
+type UnarmedStrikeDamage = Extract<Effect, { kind: 'unarmedStrikeDamage' }>;
 
 interface TakenFeature {
   feature: ClassFeature;
@@ -92,6 +93,8 @@ function featNote(feat: Feat, proficiency: number): string | undefined {
         return [`+${effect.amount} ${effect.ability.toUpperCase()}`];
       case 'initiativeBonus':
         return [`+${initiativeAmount(effect, proficiency)} to Initiative`];
+      case 'unarmedStrikeDamage':
+        return [`${effect.count}${effect.die} Unarmed Strike damage`];
       default:
         return [];
     }
@@ -181,24 +184,26 @@ function attacksFor(
   modifiers: Record<Ability, number>,
   bonus: number,
 ): SheetAttack[] {
-  const attackBonuses = featIds
-    .flatMap((id) => feats.find((feat) => feat.id === id)?.effects ?? [])
-    .filter((effect): effect is AttackRollBonus => effect.kind === 'attackRollBonus');
+  const featEffects = featIds.flatMap((id) => feats.find((feat) => feat.id === id)?.effects ?? []);
+  const attackBonuses = featEffects.filter(
+    (effect): effect is AttackRollBonus => effect.kind === 'attackRollBonus',
+  );
+  const featBonusFor = (attackType: AttackType) =>
+    attackBonuses
+      .filter((effect) => effect.attackType === attackType)
+      .reduce((total, effect) => total + effect.amount, 0);
 
-  return character.weaponIds.flatMap((id) => {
+  const wielded = character.weaponIds.flatMap((id) => {
     const weapon = weapons.find((entry) => entry.id === id);
     if (!weapon) return [];
 
     const ability = attackAbility(weapon, modifiers);
     const modifier = modifiers[ability];
-    const featBonus = attackBonuses
-      .filter((effect) => effect.attackType === weapon.attackType)
-      .reduce((total, effect) => total + effect.amount, 0);
 
     return [
       {
         name: weapon.name,
-        attackBonus: modifier + bonus + featBonus,
+        attackBonus: modifier + bonus + featBonusFor(weapon.attackType),
         damage: {
           count: weapon.damage.count,
           die: weapon.damage.die,
@@ -208,6 +213,21 @@ function attacksFor(
       },
     ];
   });
+
+  return [...wielded, unarmedStrike(featEffects, modifiers.str, bonus + featBonusFor('melee'))];
+}
+
+function unarmedStrike(featEffects: Effect[], strength: number, bonus: number): SheetAttack {
+  const upgrade = featEffects.find(
+    (effect): effect is UnarmedStrikeDamage => effect.kind === 'unarmedStrikeDamage',
+  );
+  return {
+    name: 'Unarmed Strike',
+    attackBonus: strength + bonus,
+    damage: upgrade
+      ? { count: upgrade.count, die: upgrade.die, modifier: strength, type: 'bludgeoning' }
+      : { flat: 1, modifier: strength, type: 'bludgeoning' },
+  };
 }
 
 export function derive(

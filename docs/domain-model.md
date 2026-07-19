@@ -192,8 +192,15 @@ type Effect =
   | { kind: 'grantSubclass' }                                               // "choose a subclass" — the class is implied by the feature
   | { kind: 'replaceFeature'; featureId: string }                          // this feature supersedes an earlier one, dropping it from the sheet
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType }
-  | { kind: 'initiativeBonus'; amount: number | 'proficiencyBonus' };
+  | { kind: 'initiativeBonus'; amount: number | 'proficiencyBonus' }
+  | { kind: 'unarmedStrikeDamage'; count: number; die: Die };          // upgrades the Unarmed Strike's damage, e.g. Tavern Brawler
 ```
+
+Every character has an Unarmed Strike: the derivation always appends one to the
+sheet's attacks, at flat `1 + Strength modifier` bludgeoning per the 2024 rules.
+`unarmedStrikeDamage` replaces that flat base with a damage die (still plus the
+Strength modifier), which is why the derived `SheetAttack` damage is a union of
+a dice shape and a flat shape.
 
 `grantAbility` covers anything the character can *do*. Rather than a separate
 kind per action type, the timing is a field — `Activation` — so that `trigger` is

@@ -109,8 +109,14 @@ describe('derive', () => {
     expect(names(15)).not.toContain('Improved Critical');
   });
 
-  it('leaves attacks empty when no weapon content is supplied', () => {
-    expect(sheet.attacks).toEqual([]);
+  it('grants an Unarmed Strike even when no weapon content is supplied', () => {
+    expect(sheet.attacks).toEqual([
+      {
+        name: 'Unarmed Strike',
+        attackBonus: 5,
+        damage: { flat: 1, modifier: 3, type: 'bludgeoning' },
+      },
+    ]);
   });
 
   describe('attacks', () => {
@@ -132,6 +138,33 @@ describe('derive', () => {
         attackBonus: 5,
         damage: { count: 1, die: 'd6', modifier: 3, type: 'piercing' },
       });
+    });
+
+    it('keeps the Unarmed Strike on Strength and clear of ranged-only bonuses', () => {
+      const unarmed = vera.attacks.find((attack) => attack.name === 'Unarmed Strike');
+      expect(unarmed).toEqual({
+        name: 'Unarmed Strike',
+        attackBonus: 2,
+        damage: { flat: 1, modifier: 0, type: 'bludgeoning' },
+      });
+    });
+
+    it('upgrades the Unarmed Strike damage die with Tavern Brawler and notes it', () => {
+      const brawler = derive(
+        { ...exampleFighter, featIds: ['tavern-brawler'] },
+        [fighter],
+        weapons,
+        feats,
+      );
+      const unarmed = brawler.attacks.find((attack) => attack.name === 'Unarmed Strike');
+      expect(unarmed).toEqual({
+        name: 'Unarmed Strike',
+        attackBonus: 5,
+        damage: { count: 1, die: 'd4', modifier: 3, type: 'bludgeoning' },
+      });
+      expect(brawler.feats.find((feat) => feat.name === 'Tavern Brawler')?.note).toBe(
+        'Already included in your totals: 1d4 Unarmed Strike damage.',
+      );
     });
   });
 

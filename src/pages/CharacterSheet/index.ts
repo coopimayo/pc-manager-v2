@@ -20,7 +20,7 @@ export function featuresGained(before: Character, after: Character): ClassFeatur
 }
 
 export function describeDamage(damage: SheetAttack['damage']): string {
-  const dice = `${damage.count}${damage.die}`;
+  const dice = 'die' in damage ? `${damage.count}${damage.die}` : `${damage.flat}`;
   const modifier =
     damage.modifier === 0 ? '' : damage.modifier > 0 ? ` + ${damage.modifier}` : ` − ${-damage.modifier}`;
   return `${dice}${modifier} ${damage.type}`;

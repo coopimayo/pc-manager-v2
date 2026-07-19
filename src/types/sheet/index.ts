@@ -1,6 +1,6 @@
 export type { Sheet } from './sheet';
 export type { SheetAbility } from './sheet-ability';
-export type { SheetAttack } from './sheet-attack';
+export type { SheetAttack, SheetDamage } from './sheet-attack';
 export type { SheetFeat } from './sheet-feat';
 export type { SheetFeature } from './sheet-feature';
 export type { SheetClass } from './sheet-class';

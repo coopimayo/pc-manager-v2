@@ -145,6 +145,41 @@
   cursor: not-allowed;
 }
 
+.skillGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.toggle,
+.toggleSelected {
+  padding: 0.4rem 0.8rem;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.toggleSelected {
+  border-color: var(--color-text);
+  font-weight: 600;
+}
+
+.toggle:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+
+.toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;

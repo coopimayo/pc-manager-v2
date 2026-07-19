@@ -9,7 +9,7 @@ import { weapons } from '../../data/items';
 import { species } from '../../data/species';
 import { derive, grantedFeatCategory, grantsSubclass } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
-import type { Ability, Character } from '../../types';
+import type { Ability, Character, Skill } from '../../types';
 import type { ClassFeature } from '../../types/class';
 import type { Activation } from '../../types/effect';
 import type { SheetAbility } from '../../types/sheet';
@@ -135,7 +135,11 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
     setCharacter(next);
   }
 
-  function chooseFeat(featId: string, increases?: Partial<Record<Ability, number>>) {
+  function chooseFeat(
+    featId: string,
+    increases?: Partial<Record<Ability, number>>,
+    skills?: Skill[],
+  ) {
     if (!pending) return;
     const merged: Partial<Record<Ability, number>> = { ...pending.character.abilityScoreIncreases };
     if (increases) {
@@ -147,6 +151,7 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
       ...pending.character,
       featIds: [...pending.character.featIds, featId],
       abilityScoreIncreases: merged,
+      skillProficiencies: [...new Set([...pending.character.skillProficiencies, ...(skills ?? [])])],
     });
     setPending(null);
   }
@@ -354,6 +359,9 @@ export function CharacterSheet({ character: initialCharacter, onBack }: Characte
         featureName={pending.feature.name}
         options={pendingOptions}
         abilityScores={sheet.abilityScores}
+        proficientSkills={sheet.skills
+          .filter((entry) => entry.proficient)
+          .map((entry) => entry.skill)}
         onChoose={chooseFeat}
         onCancel={() => setPending(null)}
       />

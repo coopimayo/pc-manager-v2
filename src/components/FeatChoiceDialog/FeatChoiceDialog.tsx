@@ -1,17 +1,26 @@
 import { useEffect, useState } from 'react';
 
-import type { Ability, Effect, Feat } from '../../types';
+import { titleCase } from '../../lib/format';
+import { skillAbilities } from '../../lib/skill-abilities';
+import type { Ability, Effect, Feat, Skill } from '../../types';
 import styles from './FeatChoiceDialog.module.css';
 
 type AbilityScoreChoice = Extract<Effect, { kind: 'abilityScoreChoice' }>;
+type SkillProficiencyChoice = Extract<Effect, { kind: 'skillProficiencyChoice' }>;
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+const allSkills = Object.keys(skillAbilities) as Skill[];
 
 interface FeatChoiceDialogProps {
   featureName: string;
   options: Feat[];
   abilityScores: Record<Ability, number>;
-  onChoose: (featId: string, abilityScoreIncreases?: Partial<Record<Ability, number>>) => void;
+  proficientSkills: Skill[];
+  onChoose: (
+    featId: string,
+    abilityScoreIncreases?: Partial<Record<Ability, number>>,
+    skillProficiencies?: Skill[],
+  ) => void;
   onCancel: () => void;
 }
 
@@ -21,15 +30,23 @@ function abilityScoreChoiceOf(feat: Feat | undefined): AbilityScoreChoice | unde
   );
 }
 
+function skillProficiencyChoiceOf(feat: Feat | undefined): SkillProficiencyChoice | undefined {
+  return feat?.effects.find(
+    (effect): effect is SkillProficiencyChoice => effect.kind === 'skillProficiencyChoice',
+  );
+}
+
 export function FeatChoiceDialog({
   featureName,
   options,
   abilityScores,
+  proficientSkills,
   onChoose,
   onCancel,
 }: FeatChoiceDialogProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [allocation, setAllocation] = useState<Partial<Record<Ability, number>>>({});
+  const [skills, setSkills] = useState<Skill[]>([]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -42,21 +59,32 @@ export function FeatChoiceDialog({
   function select(featId: string) {
     setSelectedId(featId);
     setAllocation({});
+    setSkills([]);
   }
 
   const selectedFeat = options.find((feat) => feat.id === selectedId);
   const choice = abilityScoreChoiceOf(selectedFeat);
+  const skillChoice = skillProficiencyChoiceOf(selectedFeat);
   const spent = abilityOrder.reduce((total, ability) => total + (allocation[ability] ?? 0), 0);
   const remaining = choice ? choice.points - spent : 0;
-  const ready = selectedId !== null && (!choice || remaining === 0);
+  const ready =
+    selectedId !== null &&
+    (!choice || remaining === 0) &&
+    (!skillChoice || skills.length === skillChoice.count);
 
   function step(ability: Ability, delta: number) {
     setAllocation((current) => ({ ...current, [ability]: (current[ability] ?? 0) + delta }));
   }
 
+  function toggleSkill(skill: Skill) {
+    setSkills((current) =>
+      current.includes(skill) ? current.filter((entry) => entry !== skill) : [...current, skill],
+    );
+  }
+
   function confirm() {
     if (!selectedId) return;
-    onChoose(selectedId, choice ? allocation : undefined);
+    onChoose(selectedId, choice ? allocation : undefined, skillChoice ? skills : undefined);
   }
 
   return (
@@ -129,6 +157,33 @@ export function FeatChoiceDialog({
                         +
                       </button>
                     </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
+
+        {skillChoice ? (
+          <div className={styles.allocation}>
+            <p className={styles.allocationLabel}>
+              Choose {skillChoice.count} skills — {skills.length} of {skillChoice.count} chosen.
+            </p>
+            <ul className={styles.skillGrid}>
+              {allSkills.map((skill) => {
+                const selected = skills.includes(skill);
+                const full = skills.length >= skillChoice.count;
+                return (
+                  <li key={skill}>
+                    <button
+                      type="button"
+                      className={selected ? styles.toggleSelected : styles.toggle}
+                      aria-pressed={selected}
+                      disabled={proficientSkills.includes(skill) || (!selected && full)}
+                      onClick={() => toggleSkill(skill)}
+                    >
+                      {titleCase(skill)}
+                    </button>
                   </li>
                 );
               })}

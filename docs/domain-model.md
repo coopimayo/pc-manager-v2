@@ -187,6 +187,7 @@ type Effect =
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
+  | { kind: 'skillProficiencyChoice'; count: number }                       // player-picked skills, e.g. Skilled
   | { kind: 'grantFeat'; category: FeatCategory }                           // "choose a feat" — value = the category offered
   | { kind: 'grantSubclass' }                                               // "choose a subclass" — the class is implied by the feature
   | { kind: 'replaceFeature'; featureId: string }                          // this feature supersedes an earlier one, dropping it from the sheet
@@ -349,8 +350,8 @@ Known gaps, roughly in priority order for making the app a functional creator:
   +2/+1 allocation, class, standard-array scores, skill picks, class starting
   equipment, level-1 class feat choices). It doesn't yet offer the background's
   starting equipment or tool proficiency, and species trait effects aren't
-  acted on (a "choose a skill" trait has no `Effect` kind, and nothing prompts
-  for the Human's Versatile origin-feat grant).
+  acted on (nothing prompts for a "choose a skill" trait's
+  `skillProficiencyChoice` or the Human's Versatile origin-feat grant).
 
 ### Small fixes
 

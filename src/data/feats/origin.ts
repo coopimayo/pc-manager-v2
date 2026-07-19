@@ -50,7 +50,7 @@ export const skilled: Feat = {
   name: 'Skilled',
   description: 'You gain proficiency in any combination of three skills or tools of your choice.',
   category: 'origin',
-  effects: [],
+  effects: [{ kind: 'skillProficiencyChoice', count: 3 }],
 };
 
 export const tavernBrawler: Feat = {

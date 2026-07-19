@@ -8,33 +8,13 @@ import { species } from '../../data/species';
 import { abilityModifier, grantedFeatCategory } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
 import type { Ability, Character, Skill } from '../../types';
-import type { EquipmentPackage } from '../../types/item';
+import { describePackage, uniqueId } from './index';
 import styles from './CharacterCreator.module.css';
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const standardArray = [15, 14, 13, 12, 10, 8];
 const backgroundPoints = 3;
 const backgroundMaxPerAbility = 2;
-
-function slugify(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function uniqueId(name: string, taken: string[]): string {
-  const base = slugify(name) || 'character';
-  if (!taken.includes(base)) return base;
-  let suffix = 2;
-  while (taken.includes(`${base}-${suffix}`)) suffix += 1;
-  return `${base}-${suffix}`;
-}
-
-function describePackage(pkg: EquipmentPackage): string {
-  return [...pkg.items.map((item) => item.name), `${pkg.gold} gp`].join(', ');
-}
 
 interface CharacterCreatorProps {
   takenIds: string[];

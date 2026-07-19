@@ -11,24 +11,12 @@ import { derive, grantedFeatCategory, grantsSubclass } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
 import type { Ability, Character } from '../../types';
 import type { ClassFeature } from '../../types/class';
-import type { Activation, Uses } from '../../types/effect';
-import type { SheetAbility, SheetAttack } from '../../types/sheet';
+import type { Activation } from '../../types/effect';
+import type { SheetAbility } from '../../types/sheet';
+import { describeDamage, describeRecharge, featuresGained } from './index';
 import styles from './CharacterSheet.module.css';
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-
-function featuresGained(before: Character, after: Character): ClassFeature[] {
-  const primary = after.classes[0];
-  const previous = before.classes[0];
-  if (!primary || !previous) return [];
-  const definition = classes.find((entry) => entry.id === primary.classId);
-  const subclass = primary.subclassId
-    ? subclasses.find((entry) => entry.id === primary.subclassId)
-    : undefined;
-  return [...(definition?.features ?? []), ...(subclass?.features ?? [])].filter(
-    (feature) => feature.level > previous.level && feature.level <= primary.level,
-  );
-}
 
 const activationLabels: Record<Activation['type'], string> = {
   'action': 'Action',
@@ -37,20 +25,6 @@ const activationLabels: Record<Activation['type'], string> = {
   'free': 'Free',
   'passive': 'Passive',
 };
-
-function describeDamage(damage: SheetAttack['damage']): string {
-  const dice = `${damage.count}${damage.die}`;
-  const modifier =
-    damage.modifier === 0 ? '' : damage.modifier > 0 ? ` + ${damage.modifier}` : ` − ${-damage.modifier}`;
-  return `${dice}${modifier} ${damage.type}`;
-}
-
-function describeRecharge(uses: Uses): string {
-  const rules = uses.recharge
-    .map((rule) => `${rule.amount === 'all' ? 'all' : rule.amount} on a ${rule.on.replace('-', ' ')}`)
-    .join(', ');
-  return `Regains ${rules}`;
-}
 
 interface UsesTrackerProps {
   name: string;

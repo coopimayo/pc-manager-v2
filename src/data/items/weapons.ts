@@ -37,6 +37,32 @@ export const javelin: Weapon = {
   range: { normal: 30, long: 120 },
 };
 
+export const spear: Weapon = {
+  id: 'spear',
+  name: 'Spear',
+  cost: { amount: 1, unit: 'gp' },
+  weight: 3,
+  category: 'simple',
+  attackType: 'melee',
+  damage: { count: 1, die: 'd6', type: 'piercing' },
+  properties: ['thrown', 'versatile'],
+  mastery: 'sap',
+  range: { normal: 20, long: 60 },
+};
+
+export const shortbow: Weapon = {
+  id: 'shortbow',
+  name: 'Shortbow',
+  cost: { amount: 25, unit: 'gp' },
+  weight: 2,
+  category: 'simple',
+  attackType: 'ranged',
+  damage: { count: 1, die: 'd6', type: 'piercing' },
+  properties: ['ammunition', 'two-handed'],
+  mastery: 'vex',
+  range: { normal: 80, long: 320 },
+};
+
 export const scimitar: Weapon = {
   id: 'scimitar',
   name: 'Scimitar',

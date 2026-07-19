@@ -6,6 +6,7 @@ import { classes, subclasses } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
 import { derive, grantedFeatCategory, grantsSubclass } from '../../lib/derive';
+import { signed, titleCase } from '../../lib/format';
 import type { Ability, Character } from '../../types';
 import type { ClassFeature } from '../../types/class';
 import type { Activation, Uses } from '../../types/effect';
@@ -34,17 +35,6 @@ const activationLabels: Record<Activation['type'], string> = {
   'free': 'Free',
   'passive': 'Passive',
 };
-
-function signed(value: number): string {
-  return value >= 0 ? `+${value}` : `${value}`;
-}
-
-function titleCase(value: string): string {
-  return value.replace(
-    /(^|-)([a-z])/g,
-    (_, prefix: string, letter: string) => (prefix ? ' ' : '') + letter.toUpperCase(),
-  );
-}
 
 function describeDamage(damage: SheetAttack['damage']): string {
   const dice = `${damage.count}${damage.die}`;

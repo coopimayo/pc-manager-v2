@@ -114,11 +114,14 @@ function HideableCards<Item extends { id: string; name: string; description: str
 
 interface CharacterSheetProps {
   character: Character;
+  onChange: (character: Character) => void;
   onBack: () => void;
 }
 
-export function CharacterSheet({ character: initialCharacter, onBack }: CharacterSheetProps) {
-  const [character, setCharacter] = useState(initialCharacter);
+export function CharacterSheet({ character, onChange, onBack }: CharacterSheetProps) {
+  function setCharacter(next: Character | ((current: Character) => Character)) {
+    onChange(typeof next === 'function' ? next(character) : next);
+  }
   const [remaining, setRemaining] = useState<Record<string, number>>({});
   const [pending, setPending] = useState<{ character: Character; feature: ClassFeature } | null>(
     null,

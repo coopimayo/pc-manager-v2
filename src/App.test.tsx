@@ -306,6 +306,28 @@ describe('App', () => {
     expect(within(traits).getByText('Skillful')).toBeInTheDocument();
   });
 
+  it('keeps an edit after the app is reloaded', async () => {
+    const user = userEvent.setup();
+    const first = render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
+    const features = screen
+      .getByRole('heading', { name: 'Features' })
+      .closest('section') as HTMLElement;
+    await user.click(within(features).getByRole('button', { name: 'Hide Second Wind' }));
+    expect(within(features).queryByText('Second Wind')).not.toBeInTheDocument();
+
+    first.unmount();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
+    const reloaded = screen
+      .getByRole('heading', { name: 'Features' })
+      .closest('section') as HTMLElement;
+    expect(within(reloaded).queryByText('Second Wind')).not.toBeInTheDocument();
+    expect(within(reloaded).getByRole('button', { name: 'Show 1 hidden' })).toBeInTheDocument();
+  });
+
   it('returns to the dashboard when creation is cancelled', async () => {
     const user = userEvent.setup();
     render(<App />);

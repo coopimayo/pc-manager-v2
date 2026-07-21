@@ -23,6 +23,27 @@ const standardArray = [15, 14, 13, 12, 10, 8];
 const backgroundPoints = 3;
 const backgroundMaxPerAbility = 2;
 
+type AbilityMethod = 'array' | 'pointBuy';
+const pointBuyBudget = 27;
+const pointBuyMin = 8;
+const pointBuyMax = 15;
+const pointBuyCost: Record<number, number> = {
+  8: 0,
+  9: 1,
+  10: 2,
+  11: 3,
+  12: 4,
+  13: 5,
+  14: 7,
+  15: 9,
+};
+const pointBuyCostOf = (score: number) => pointBuyCost[score] ?? 0;
+const emptyPointBuy = (): Partial<Record<Ability, number>> =>
+  abilityOrder.reduce<Partial<Record<Ability, number>>>((acc, ability) => {
+    acc[ability] = pointBuyMin;
+    return acc;
+  }, {});
+
 interface CharacterCreatorProps {
   takenIds: string[];
   onCreate: (character: Character) => void;
@@ -36,6 +57,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const [backgroundId, setBackgroundId] = useState<string | null>(null);
   const [bonuses, setBonuses] = useState<Partial<Record<Ability, number>>>({});
   const [classId, setClassId] = useState<string | null>(null);
+  const [abilityMethod, setAbilityMethod] = useState<AbilityMethod>('array');
   const [scores, setScores] = useState<Partial<Record<Ability, number>>>({});
   const [skills, setSkills] = useState<Skill[]>([]);
   const [featSkills, setFeatSkills] = useState<Skill[]>([]);
@@ -56,11 +78,18 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const equipment = chosen?.startingEquipment.from.find((pkg) => pkg.label === equipmentLabel);
   const assigned = new Set(Object.values(scores));
   const scoresComplete = abilityOrder.every((ability) => scores[ability] !== undefined);
+  const pointsSpent = abilityOrder.reduce(
+    (total, ability) => total + pointBuyCostOf(scores[ability] ?? pointBuyMin),
+    0,
+  );
+  const pointsRemaining = pointBuyBudget - pointsSpent;
+  const abilitiesDone =
+    abilityMethod === 'array' ? scoresComplete : scoresComplete && pointsRemaining === 0;
   const grantedSkills = chosenBackground?.skillProficiencies ?? [];
   const bonusSpent = abilityOrder.reduce((total, ability) => total + (bonuses[ability] ?? 0), 0);
   const bonusRemaining = backgroundPoints - bonusSpent;
 
-  const basicsDone = name.trim() !== '' && scoresComplete;
+  const basicsDone = name.trim() !== '' && abilitiesDone;
   const speciesDone =
     chosenSpecies !== undefined &&
     (speciesSkillChoice === undefined || speciesSkills.length === speciesSkillChoice.count);
@@ -119,6 +148,12 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
       else next[ability] = Number(raw);
       return next;
     });
+  }
+
+  function selectMethod(method: AbilityMethod) {
+    if (method === abilityMethod) return;
+    setAbilityMethod(method);
+    setScores(method === 'pointBuy' ? emptyPointBuy() : {});
   }
 
   function create() {
@@ -194,42 +229,85 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
 
           <section className={styles.section}>
             <h2 className={styles.heading}>Ability Scores</h2>
-            <p className={styles.hint}>
-              Assign each value of the standard array ({standardArray.join(', ')}) to an ability.
-              Background increases fold into the totals.
-            </p>
-            <ul className={styles.abilities}>
-              {abilityOrder.map((ability) => {
-                const value = scores[ability];
-                return (
-                  <li key={ability} className={styles.ability}>
-                    <label className={styles.abilityName} htmlFor={`ability-${ability}`}>
-                      {ability.toUpperCase()}
-                    </label>
-                    <select
-                      id={`ability-${ability}`}
-                      className={styles.select}
-                      value={value ?? ''}
-                      onChange={(event) => assignScore(ability, event.target.value)}
-                    >
-                      <option value="">—</option>
-                      {standardArray.map((option) => (
-                        <option
-                          key={option}
-                          value={option}
-                          disabled={option !== value && assigned.has(option)}
+            <div className={styles.methodToggle} role="group" aria-label="Ability score method">
+              <button
+                type="button"
+                className={abilityMethod === 'array' ? styles.methodOptionActive : styles.methodOption}
+                aria-pressed={abilityMethod === 'array'}
+                onClick={() => selectMethod('array')}
+              >
+                Standard Array
+              </button>
+              <button
+                type="button"
+                className={
+                  abilityMethod === 'pointBuy' ? styles.methodOptionActive : styles.methodOption
+                }
+                aria-pressed={abilityMethod === 'pointBuy'}
+                onClick={() => selectMethod('pointBuy')}
+              >
+                Point Buy
+              </button>
+            </div>
+            {abilityMethod === 'array' ? (
+              <>
+                <p className={styles.hint}>
+                  Assign each value of the standard array ({standardArray.join(', ')}) to an ability.
+                  Background increases fold into the totals.
+                </p>
+                <ul className={styles.abilities}>
+                  {abilityOrder.map((ability) => {
+                    const value = scores[ability];
+                    return (
+                      <li key={ability} className={styles.ability}>
+                        <label className={styles.abilityName} htmlFor={`ability-${ability}`}>
+                          {ability.toUpperCase()}
+                        </label>
+                        <select
+                          id={`ability-${ability}`}
+                          className={styles.select}
+                          value={value ?? ''}
+                          onChange={(event) => assignScore(ability, event.target.value)}
                         >
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                    <span className={styles.abilityModifier}>
-                      {value === undefined ? '' : signed(abilityModifier(value))}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                          <option value="">—</option>
+                          {standardArray.map((option) => (
+                            <option
+                              key={option}
+                              value={option}
+                              disabled={option !== value && assigned.has(option)}
+                            >
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        <span className={styles.abilityModifier}>
+                          {value === undefined ? '' : signed(abilityModifier(value))}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            ) : (
+              <>
+                <p className={styles.hint}>
+                  Every score starts at {pointBuyMin}. Spend {pointBuyBudget} points to raise them up
+                  to {pointBuyMax} (13→14 and 14→15 cost 2 each). Background increases fold into the
+                  totals — {pointsRemaining} point{pointsRemaining === 1 ? '' : 's'} left.
+                </p>
+                <AbilityAllocator
+                  abilities={abilityOrder}
+                  allocation={scores}
+                  valueLabel={(_, score) => `${score} · ${signed(abilityModifier(score))}`}
+                  canIncrease={(_, score) =>
+                    score < pointBuyMax &&
+                    pointBuyCostOf(score + 1) - pointBuyCostOf(score) <= pointsRemaining
+                  }
+                  canDecrease={(_, score) => score > pointBuyMin}
+                  onChange={setScores}
+                />
+              </>
+            )}
           </section>
         </>
       ) : null}

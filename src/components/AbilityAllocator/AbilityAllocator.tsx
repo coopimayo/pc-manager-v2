@@ -6,6 +6,7 @@ interface AbilityAllocatorProps {
   allocation: Partial<Record<Ability, number>>;
   valueLabel: (ability: Ability, added: number) => string;
   canIncrease: (ability: Ability, added: number) => boolean;
+  canDecrease?: (ability: Ability, added: number) => boolean;
   onChange: (allocation: Partial<Record<Ability, number>>) => void;
 }
 
@@ -14,6 +15,7 @@ export function AbilityAllocator({
   allocation,
   valueLabel,
   canIncrease,
+  canDecrease = (_, added) => added > 0,
   onChange,
 }: AbilityAllocatorProps) {
   function step(ability: Ability, delta: number) {
@@ -33,7 +35,7 @@ export function AbilityAllocator({
                 type="button"
                 className={styles.step}
                 aria-label={`Decrease ${ability.toUpperCase()}`}
-                disabled={added <= 0}
+                disabled={!canDecrease(ability, added)}
                 onClick={() => step(ability, -1)}
               >
                 −

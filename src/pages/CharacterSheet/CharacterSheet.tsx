@@ -8,6 +8,7 @@ import { classes, subclasses } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
 import { species, subspecies } from '../../data/species';
+import { spells } from '../../data/spells';
 import { derive, grantedFeatCategory, grantsSubclass } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
 import type { Ability, Character, Skill } from '../../types';
@@ -144,6 +145,7 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
     species,
     subspecies,
     backgrounds,
+    spells,
   });
   const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
   const subclassLine = sheet.classes
@@ -410,6 +412,50 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
           </ul>
         )}
       </section>
+
+      {sheet.spells.length > 0 ? (
+        <section className={styles.section}>
+          <h2 className={styles.heading}>Spells</h2>
+          {sheet.spellcasting ? (
+            <div className={styles.stats}>
+              <div className={styles.stat}>
+                <span className={styles.statLabel}>Ability</span>
+                <strong className={styles.statValue}>
+                  {sheet.spellcasting.ability.toUpperCase()}
+                </strong>
+              </div>
+              <div className={styles.stat}>
+                <span className={styles.statLabel}>Save DC</span>
+                <strong className={styles.statValue}>{sheet.spellcasting.saveDc}</strong>
+              </div>
+              <div className={styles.stat}>
+                <span className={styles.statLabel}>Spell Attack</span>
+                <strong className={styles.statValue}>
+                  {signed(sheet.spellcasting.attackBonus)}
+                </strong>
+              </div>
+            </div>
+          ) : null}
+          <ul className={styles.cards}>
+            {sheet.spells.map((spell) => (
+              <li key={spell.name} className={styles.card}>
+                <div className={styles.cardHead}>
+                  <strong>{spell.name}</strong>
+                  <span className={styles.badge}>
+                    {spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`}
+                  </span>
+                </div>
+                <p className={styles.cardMeta}>
+                  {[titleCase(spell.school), spell.castingTime, spell.range, spell.duration].join(
+                    ' · ',
+                  )}
+                </p>
+                <p className={styles.cardBody}>{spell.description}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Features</h2>

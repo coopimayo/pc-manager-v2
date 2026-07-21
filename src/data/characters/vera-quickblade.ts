@@ -10,4 +10,5 @@ export const veraQuickblade: Character = {
   skillProficiencies: ['acrobatics', 'stealth'],
   featIds: ['archery'],
   weaponIds: ['longbow', 'shortsword'],
+  spellbook: { knownSpellIds: [] },
 };

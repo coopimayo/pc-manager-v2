@@ -9,6 +9,7 @@ import { feats } from '../data/feats';
 import { weapons } from '../data/items';
 import { elf, elfSubspecies, woodElf } from '../data/species/elf';
 import { human } from '../data/species/human';
+import { spells } from '../data/spells';
 import { abilityModifier, derive, proficiencyBonus } from './derive';
 
 describe('abilityModifier', () => {
@@ -449,5 +450,55 @@ describe('derive', () => {
         },
       },
     ]);
+  });
+});
+
+describe('spellbook', () => {
+  const data = { classes: [fighter], spells };
+
+  it('resolves known spells, sorted by level then name', () => {
+    const caster = derive(
+      {
+        ...veraQuickblade,
+        spellbook: { castingAbility: 'int', knownSpellIds: ['detect-magic', 'prestidigitation'] },
+      },
+      data,
+    );
+
+    expect(caster.spells.map((spell) => spell.name)).toEqual([
+      'Prestidigitation',
+      'Detect Magic',
+    ]);
+    expect(caster.spells[0]).toMatchObject({
+      name: 'Prestidigitation',
+      level: 0,
+      school: 'transmutation',
+    });
+  });
+
+  it('derives the save DC and attack bonus from the casting ability', () => {
+    const caster = derive(
+      { ...veraQuickblade, spellbook: { castingAbility: 'int', knownSpellIds: ['prestidigitation'] } },
+      data,
+    );
+
+    // Vera has INT 12 (+1) at level 3 (proficiency +2).
+    expect(caster.spellcasting).toEqual({ ability: 'int', saveDc: 11, attackBonus: 3 });
+  });
+
+  it('skips spell ids with no matching content', () => {
+    const caster = derive(
+      { ...veraQuickblade, spellbook: { knownSpellIds: ['prestidigitation', 'not-a-spell'] } },
+      data,
+    );
+
+    expect(caster.spells.map((spell) => spell.name)).toEqual(['Prestidigitation']);
+  });
+
+  it('leaves an empty spellbook without spells or spellcasting', () => {
+    const nonCaster = derive(exampleFighter, data);
+
+    expect(nonCaster.spells).toEqual([]);
+    expect(nonCaster.spellcasting).toBeUndefined();
   });
 });

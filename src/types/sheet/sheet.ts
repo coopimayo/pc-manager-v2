@@ -5,6 +5,7 @@ import type { SheetClass } from './sheet-class';
 import type { SheetFeat } from './sheet-feat';
 import type { SheetFeature } from './sheet-feature';
 import type { SheetSkill } from './sheet-skill';
+import type { SheetSpell } from './sheet-spell';
 import type { SheetTrait } from './sheet-trait';
 
 export interface Sheet {
@@ -25,4 +26,6 @@ export interface Sheet {
   feats: SheetFeat[];
   abilities: SheetAbility[];
   attacks: SheetAttack[];
+  spells: SheetSpell[];
+  spellcasting?: { ability: Ability; saveDc: number; attackBonus: number };
 }

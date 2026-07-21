@@ -17,7 +17,8 @@ type model. What exists today:
   Champion subclass, its starting equipment, a set of feats (fighting styles,
   origin feats, and general feats including Ability Score Improvement), the
   Human and Elf species (the Elf with its Drow, High Elf, and Wood Elf
-  lineages), all sixteen 2024 backgrounds, and two example characters.
+  lineages), all sixteen 2024 backgrounds, the nine spells the Elf lineages draw
+  on, and two example characters.
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability scores with chosen and feat increases folded in (capped
   at 20) and their modifiers, proficiency bonus, initiative (feat
@@ -31,10 +32,15 @@ type model. What exists today:
   (Lucky's Luck Points), and weapon attacks with their to-hit and damage (feat
   `attackRollBonus` effects fold into the to-hit). The background's fixed skills
   and origin feat fold in by id, and the species — plus the chosen subspecies —
-  contributes its name and traits; ids that don't resolve are skipped.
+  contributes its name and traits; ids that don't resolve are skipped. A
+character's `spellbook` resolves its known spell ids into the sheet's spell list
+(sorted by level), with the spellcasting save DC and attack bonus derived from
+the chosen casting ability.
 - **UI** (`src/pages/`, `src/components/`) — a dashboard listing characters, and a
   character sheet with a click-to-spend use tracker on each limited-use ability
-  and a **Level Up** button that re-derives the sheet. Leveling into a feat slot
+  and a **Level Up** button that re-derives the sheet. The sheet lists the character's
+spells — with the derived save DC and spell attack bonus — whenever its spellbook
+isn't empty. Leveling into a feat slot
   (like the level-4 ASI) opens a dialog to pick the feat and, for Ability Score
   Improvement, allocate the +2 / +1 increase; leveling into the level-3 subclass
   feature opens a dialog to pick a subclass (e.g. Champion); a character whose
@@ -47,8 +53,8 @@ type model. What exists today:
   attacks) and any level-1 feat choice such as the Fighter's Fighting Style —
   then opens the finished sheet.
 
-Not yet built: more species (only the Human and Elf so far); spells; armour and
-AC.
+Not yet built: more species (only the Human and Elf so far); spell slots and the
+wiring that grants the Elf lineages' spells; armour and AC.
 See [Not yet modelled](docs/domain-model.md#not-yet-modelled) for the rest.
 
 ## Development
@@ -75,6 +81,7 @@ src/
     classes/          the Fighter, its features, Champion subclass and equipment
     species/          the Human, and the Elf with its lineages
     backgrounds/      all sixteen 2024 backgrounds
+    spells/           the Elf lineages' cantrips and leveled spells
     items/            weapons, armour and gear
     characters/       example characters
   lib/                framework-agnostic logic
@@ -151,10 +158,12 @@ it:
   creator also ignores the background's starting equipment and tool proficiency.
 - The `Effect` union covers most species mechanics only as text: there's no kind
   for a sense (Darkvision), a conditional-save advantage (Fey Ancestry), a rest
-  change (Trance), a speed override (Wood Elf), or a spell grant that is
-  level-gated with a choose-your-casting-ability (the lineages' spells) — and
-  there are no spells to grant yet. Keen Senses' constrained skill pick is
-  modelled: `skillProficiencyChoice` takes an optional `from` list of skills.
+  change (Trance), or a speed override (Wood Elf). The lineages' spells now exist
+  as content and a character carries a stored `spellbook` (known spell ids and a
+  chosen casting ability) that derives onto the sheet, but the `grantSpells`
+  effect that would populate it from a lineage — level-gated at character levels
+  3 and 5 — isn't wired yet. Keen Senses' constrained skill pick is modelled:
+  `skillProficiencyChoice` takes an optional `from` list of skills.
 - `ClassFeature` and a granted ability each carry their own name and
   description, so Second Wind's name and text are authored twice. Every feature
   now reaches `Sheet.features`, so an ability-granting feature shows under both

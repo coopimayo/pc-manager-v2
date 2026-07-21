@@ -3,6 +3,7 @@ import type { Class, ClassFeature, Subclass } from '../types/class';
 import type { Uses } from '../types/effect';
 import type { AttackType, Weapon } from '../types/item';
 import type { Species, Subspecies } from '../types/species';
+import type { Spell } from '../types/spell';
 import type {
   Sheet,
   SheetAbility,
@@ -11,6 +12,7 @@ import type {
   SheetFeat,
   SheetFeature,
   SheetSkill,
+  SheetSpell,
 } from '../types/sheet';
 import { effectOfKind, effectsOfKind, type EffectOfKind } from './effects';
 import { skillAbilities } from './skill-abilities';
@@ -23,6 +25,7 @@ export interface DeriveData {
   species?: Species[];
   subspecies?: Subspecies[];
   backgrounds?: Background[];
+  spells?: Spell[];
 }
 
 interface ResolvedClass {
@@ -229,8 +232,20 @@ function unarmedStrike(featEffects: Effect[], strength: number, bonus: number): 
   };
 }
 
+function spellsFor(character: Character, spells: Spell[]): SheetSpell[] {
+  return character.spellbook.knownSpellIds
+    .flatMap((id) => {
+      const spell = spells.find((entry) => entry.id === id);
+      if (!spell) return [];
+      const { name, level, school, castingTime, range, duration, concentration, description } =
+        spell;
+      return [{ name, level, school, castingTime, range, duration, concentration, description }];
+    })
+    .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
+}
+
 export function derive(character: Character, data: DeriveData = {}): Sheet {
-  const { classes = [], weapons = [], feats = [], subclasses = [], species = [], subspecies = [], backgrounds = [] } = data;
+  const { classes = [], weapons = [], feats = [], subclasses = [], species = [], subspecies = [], backgrounds = [], spells = [] } = data;
 
   const level = character.classes.reduce((total, taken) => total + taken.level, 0);
   const bonus = proficiencyBonus(level);
@@ -304,6 +319,17 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     0,
   );
 
+  const sheetSpells = spellsFor(character, spells);
+  const castingAbility = character.spellbook.castingAbility;
+  const spellcasting =
+    castingAbility !== undefined
+      ? {
+          ability: castingAbility,
+          saveDc: 8 + bonus + abilityModifiers[castingAbility],
+          attackBonus: bonus + abilityModifiers[castingAbility],
+        }
+      : undefined;
+
   return {
     name: character.name,
     species: chosenSpecies?.name,
@@ -331,5 +357,7 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     feats: characterFeats,
     abilities: [...abilities, ...sheetAbilities(featEffects, level, bonus)],
     attacks: attacksFor(character, weapons, featEffects, abilityModifiers, bonus),
+    spells: sheetSpells,
+    spellcasting,
   };
 }

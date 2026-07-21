@@ -139,6 +139,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
       weaponIds: equipment.items
         .filter((item) => weapons.some((weapon) => weapon.id === item.id))
         .map((item) => item.id),
+      spellbook: { knownSpellIds: [] },
     });
   }
 

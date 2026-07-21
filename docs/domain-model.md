@@ -58,10 +58,21 @@ interface Character {
   skillProficiencies: Skill[];          // the skills actually chosen
   featIds: string[];
   weaponIds: string[];                  // → Weapon, the weapons carried
+  spellbook: Spellbook;                 // known spells + the chosen casting ability
   hiddenFeatureIds?: string[];          // feature cards the player chose to hide
   hiddenTraitIds?: string[];            // trait cards the player chose to hide
 }
+
+interface Spellbook {
+  castingAbility?: Ability;             // chosen when a spell source is selected (e.g. an Elf lineage)
+  knownSpellIds: string[];              // → Spell, the spells the character knows
+}
 ```
+
+The `spellbook` holds the character's spells as instance data: the ids it knows
+and the one ability it casts them with. `derive` resolves the ids against the
+`Spell` content and computes the save DC and attack bonus from the casting
+ability. It is empty (`{ knownSpellIds: [] }`) for non-casters.
 
 ## Content entities
 
@@ -178,6 +189,32 @@ interface Feat {
 }
 ```
 
+### Spell — [`spell/`](../src/types/spell)
+
+Reference content for a spell. A `Character.spellbook` names spells by id; it
+never embeds them. Nothing yet grants slots or tracks preparation.
+
+```ts
+type SpellSchool =
+  | 'abjuration' | 'conjuration' | 'divination' | 'enchantment'
+  | 'evocation' | 'illusion' | 'necromancy' | 'transmutation';
+
+interface Spell {
+  id: string;
+  name: string;
+  level: number;                        // 0 = cantrip
+  school: SpellSchool;
+  castingTime: string;                  // e.g. 'Action', 'Bonus Action'
+  range: string;                        // e.g. 'Self', '60 feet', 'Touch'
+  duration: string;                     // e.g. 'Instantaneous', 'Concentration, up to 1 minute'
+  concentration: boolean;
+  description: string;
+}
+```
+
+The authored data ([`data/spells/`](../src/data/spells)) is the nine spells the
+Elf lineages draw on (Dancing Lights, Faerie Fire, Darkness, and so on).
+
 ### Effect — [`effect/`](../src/types/effect)
 
 A discriminated union of machine-readable benefits. Feats, traits and class
@@ -188,7 +225,7 @@ Widen the union as new kinds are needed.
 type Effect =
   | { kind: 'abilityScoreIncrease'; ability: Ability; amount: number }
   | { kind: 'abilityScoreChoice'; points: number; maxPerAbility: number }   // player-allocated, e.g. ASI
-  | { kind: 'grantSpells'; spellIds: string[]; castingAbility: Ability }
+  | { kind: 'grantSpells'; spellIds: string[]; castingAbility: Ability }     // declared, not yet consumed by derive — see Not yet modelled
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
@@ -351,8 +388,14 @@ Known gaps, roughly in priority order for making the app a functional creator:
 - **More content data** — the Fighter (with its Champion subclass), the Human
   and the Soldier exist under `src/data/`; the example characters also
   reference an Elf and a Criminal that don't.
-- **Spells & spellcasting** — no `Spell` type yet; `Effect.grantSpells`
-  references spell ids that don't resolve to anything.
+- **Spells & spellcasting** — there is now a `Spell` type, spell data, and a
+  stored `Character.spellbook` that `derive` resolves onto the sheet (with the
+  save DC and attack bonus). Still missing: spell *slots* and preparation, and
+  the wiring that would populate the spellbook from a source. The Elf lineages
+  grant a cantrip plus spells unlocked at character levels 3 and 5, with the
+  casting ability chosen when the lineage is picked — `Effect.grantSpells` is
+  declared for this but not yet consumed by `derive`, and it can't yet express
+  the per-spell unlock level or the "choose your casting ability" option.
 - **Languages** and **conditions** — no types yet.
 - **Character detail** — chosen ability-score *bonuses* now live in
   `Character.abilityScoreIncreases` (used by the ASI feat and the creator's

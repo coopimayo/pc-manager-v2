@@ -1,5 +1,6 @@
 import type { Ability, Skill } from '../common';
 import type { CharacterClass } from './character-class';
+import type { Spellbook } from './spellbook';
 
 export interface Character {
   id: string;
@@ -13,6 +14,7 @@ export interface Character {
   skillProficiencies: Skill[];
   featIds: string[];
   weaponIds: string[];
+  spellbook: Spellbook;
   hiddenFeatureIds?: string[];
   hiddenTraitIds?: string[];
 }

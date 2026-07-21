@@ -10,4 +10,5 @@ export const exampleFighter: Character = {
   skillProficiencies: ['athletics', 'intimidation'],
   featIds: [],
   weaponIds: ['greatsword', 'javelin'],
+  spellbook: { knownSpellIds: [] },
 };

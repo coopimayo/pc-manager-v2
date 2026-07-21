@@ -132,36 +132,42 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: 'New Character' }));
     expect(screen.getByRole('heading', { name: 'New Character' })).toBeInTheDocument();
+    const next = () => screen.getByRole('button', { name: /Next/ });
 
+    // Basics
     await user.type(screen.getByLabelText('Name'), 'Torin Oakenshield');
-    await user.click(screen.getByRole('button', { name: /Human/ }));
-    await user.click(screen.getByRole('button', { name: /Soldier/ }));
-    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
-    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
-    await user.click(screen.getByRole('button', { name: 'Increase CON' }));
-    await user.click(screen.getByRole('button', { name: /Fighter/ }));
-
     await user.selectOptions(screen.getByLabelText('STR'), '15');
     await user.selectOptions(screen.getByLabelText('DEX'), '13');
     await user.selectOptions(screen.getByLabelText('CON'), '14');
     await user.selectOptions(screen.getByLabelText('INT'), '10');
     await user.selectOptions(screen.getByLabelText('WIS'), '12');
     await user.selectOptions(screen.getByLabelText('CHA'), '8');
+    await user.click(next());
 
+    // Species
+    await user.click(screen.getByRole('button', { name: /Human/ }));
+    await user.click(screen.getByRole('button', { name: 'Stealth' }));
+    await user.click(next());
+
+    // Background
+    await user.click(screen.getByRole('button', { name: /Soldier/ }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase CON' }));
+    await user.click(next());
+
+    // Class
+    await user.click(screen.getByRole('button', { name: /Fighter/ }));
     const skillsSection = screen
       .getByRole('heading', { name: 'Skills' })
       .closest('section') as HTMLElement;
     await user.click(within(skillsSection).getByRole('button', { name: 'Acrobatics' }));
     await user.click(within(skillsSection).getByRole('button', { name: 'Perception' }));
-
-    const speciesSection = screen
-      .getByRole('heading', { name: 'Species' })
-      .closest('section') as HTMLElement;
-    await user.click(within(speciesSection).getByRole('button', { name: 'Stealth' }));
-
     await user.click(screen.getByRole('button', { name: /Option A/ }));
     await user.click(screen.getByRole('button', { name: /Archery/ }));
+    await user.click(next());
 
+    // Review
     await user.click(screen.getByRole('button', { name: 'Create Character' }));
 
     expect(screen.getByRole('heading', { name: 'Torin Oakenshield' })).toBeInTheDocument();
@@ -194,26 +200,47 @@ describe('App', () => {
     expect(card).toHaveTextContent('12 HP');
   });
 
-  it('disables Create Character until every choice is made', async () => {
+  it('gates each step until its choices are made', async () => {
     const user = userEvent.setup();
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: 'New Character' }));
-    const create = () => screen.getByRole('button', { name: 'Create Character' });
-    expect(create()).toBeDisabled();
+    const next = () => screen.getByRole('button', { name: /Next/ });
 
+    // Basics
+    expect(next()).toBeDisabled();
     await user.type(screen.getByLabelText('Name'), 'Torin');
-    await user.click(screen.getByRole('button', { name: /Human/ }));
-    await user.click(screen.getByRole('button', { name: /Soldier/ }));
-    await user.click(screen.getByRole('button', { name: /Fighter/ }));
-
     await user.selectOptions(screen.getByLabelText('STR'), '15');
     await user.selectOptions(screen.getByLabelText('DEX'), '13');
     await user.selectOptions(screen.getByLabelText('CON'), '14');
     await user.selectOptions(screen.getByLabelText('INT'), '10');
     await user.selectOptions(screen.getByLabelText('WIS'), '12');
     await user.selectOptions(screen.getByLabelText('CHA'), '8');
+    expect(next()).toBeEnabled();
+    await user.click(next());
 
+    // Species — Human's Skillful trait needs a skill before advancing
+    expect(next()).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /Human/ }));
+    expect(next()).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Stealth' }));
+    expect(next()).toBeEnabled();
+    await user.click(next());
+
+    // Background — the +2/+1 allocation must be spent
+    expect(next()).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /Soldier/ }));
+    expect(next()).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase DEX' }));
+    await user.click(screen.getByRole('button', { name: 'Increase CON' }));
+    expect(next()).toBeEnabled();
+    await user.click(next());
+
+    // Class — skills, equipment and the fighting style are all required
+    expect(next()).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /Fighter/ }));
+    expect(next()).toBeDisabled();
     const skillsSection = screen
       .getByRole('heading', { name: 'Skills' })
       .closest('section') as HTMLElement;
@@ -221,21 +248,14 @@ describe('App', () => {
     await user.click(within(skillsSection).getByRole('button', { name: 'Perception' }));
     expect(within(skillsSection).getByRole('button', { name: 'Athletics' })).toBeDisabled();
     expect(within(skillsSection).getByRole('button', { name: 'History' })).toBeDisabled();
-
     await user.click(screen.getByRole('button', { name: /Option A/ }));
+    expect(next()).toBeDisabled();
     await user.click(screen.getByRole('button', { name: /Archery/ }));
-    expect(create()).toBeDisabled();
+    expect(next()).toBeEnabled();
+    await user.click(next());
 
-    const speciesSection = screen
-      .getByRole('heading', { name: 'Species' })
-      .closest('section') as HTMLElement;
-    await user.click(within(speciesSection).getByRole('button', { name: 'Stealth' }));
-    expect(create()).toBeDisabled();
-
-    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
-    await user.click(screen.getByRole('button', { name: 'Increase DEX' }));
-    await user.click(screen.getByRole('button', { name: 'Increase CON' }));
-    expect(create()).toBeEnabled();
+    // Review
+    expect(screen.getByRole('button', { name: 'Create Character' })).toBeEnabled();
   });
 
   it('requires and applies skill picks when the background feat is Skilled', async () => {
@@ -243,49 +263,54 @@ describe('App', () => {
     render(<App />);
 
     await user.click(screen.getByRole('button', { name: 'New Character' }));
-    await user.type(screen.getByLabelText('Name'), 'Selene Highmore');
-    await user.click(screen.getByRole('button', { name: /Human/ }));
-    await user.click(screen.getByRole('button', { name: /Noble/ }));
-    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
-    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
-    await user.click(screen.getByRole('button', { name: 'Increase INT' }));
-    await user.click(screen.getByRole('button', { name: /Fighter/ }));
+    const next = () => screen.getByRole('button', { name: /Next/ });
 
+    // Basics
+    await user.type(screen.getByLabelText('Name'), 'Selene Highmore');
     await user.selectOptions(screen.getByLabelText('STR'), '15');
     await user.selectOptions(screen.getByLabelText('DEX'), '13');
     await user.selectOptions(screen.getByLabelText('CON'), '14');
     await user.selectOptions(screen.getByLabelText('INT'), '10');
     await user.selectOptions(screen.getByLabelText('WIS'), '12');
     await user.selectOptions(screen.getByLabelText('CHA'), '8');
+    await user.click(next());
 
-    const skillsSection = screen
-      .getByRole('heading', { name: 'Skills' })
-      .closest('section') as HTMLElement;
-    await user.click(within(skillsSection).getByRole('button', { name: 'Acrobatics' }));
-    await user.click(within(skillsSection).getByRole('button', { name: 'Perception' }));
-    await user.click(screen.getByRole('button', { name: /Option A/ }));
-    await user.click(screen.getByRole('button', { name: /Archery/ }));
+    // Species
+    await user.click(screen.getByRole('button', { name: /Human/ }));
+    await user.click(screen.getByRole('button', { name: 'Nature' }));
+    await user.click(next());
 
-    const create = () => screen.getByRole('button', { name: 'Create Character' });
-    expect(create()).toBeDisabled();
-
+    // Background — Noble's Skilled feat requires three skill picks
+    await user.click(screen.getByRole('button', { name: /Noble/ }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase INT' }));
     const backgroundSection = screen
       .getByRole('heading', { name: 'Background' })
       .closest('section') as HTMLElement;
     expect(within(backgroundSection).getByRole('button', { name: 'History' })).toBeDisabled();
-    expect(within(backgroundSection).getByRole('button', { name: 'Acrobatics' })).toBeDisabled();
-
+    expect(next()).toBeDisabled();
     await user.click(within(backgroundSection).getByRole('button', { name: 'Arcana' }));
     await user.click(within(backgroundSection).getByRole('button', { name: 'Stealth' }));
     await user.click(within(backgroundSection).getByRole('button', { name: 'Insight' }));
-    expect(create()).toBeDisabled();
+    expect(next()).toBeEnabled();
+    await user.click(next());
 
-    const speciesSection = screen
-      .getByRole('heading', { name: 'Species' })
+    // Class — the Insight taken by Skilled is locked out of the class list
+    await user.click(screen.getByRole('button', { name: /Fighter/ }));
+    const skillsSection = screen
+      .getByRole('heading', { name: 'Skills' })
       .closest('section') as HTMLElement;
-    await user.click(within(speciesSection).getByRole('button', { name: 'Nature' }));
-    expect(create()).toBeEnabled();
+    expect(within(skillsSection).getByRole('button', { name: 'Insight' })).toBeDisabled();
+    await user.click(within(skillsSection).getByRole('button', { name: 'Acrobatics' }));
+    await user.click(within(skillsSection).getByRole('button', { name: 'Perception' }));
+    await user.click(screen.getByRole('button', { name: /Option A/ }));
+    await user.click(screen.getByRole('button', { name: /Archery/ }));
+    await user.click(next());
 
+    // Review
+    const create = () => screen.getByRole('button', { name: 'Create Character' });
+    expect(create()).toBeEnabled();
     await user.click(create());
 
     expect(screen.getByRole('heading', { name: 'Selene Highmore' })).toBeInTheDocument();

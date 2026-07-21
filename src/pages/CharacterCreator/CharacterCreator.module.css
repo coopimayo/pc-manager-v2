@@ -133,9 +133,56 @@
   margin-top: 1rem;
 }
 
-.footer {
+.review {
+  margin: 0 0 1.5rem;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.reviewRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.reviewTerm {
+  flex: 0 0 6rem;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.reviewValue {
+  margin: 0;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.secondary {
+  padding: 0.55rem 1.1rem;
+  border: 1.5px solid var(--color-surface);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.secondary:hover:not(:disabled) {
+  color: inherit;
+  border-color: var(--color-text-muted);
+}
+
+.secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .create {

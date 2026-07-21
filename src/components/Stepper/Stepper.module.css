@@ -1,0 +1,68 @@
+.steps {
+  list-style: none;
+  margin: 0 0 2.5rem;
+  padding: 0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.step {
+  flex: 1;
+}
+
+.current,
+.done,
+.todo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.1rem;
+  border: 0;
+  border-top: 2px solid var(--color-surface);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.current {
+  border-top-color: var(--color-text);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.done {
+  border-top-color: var(--color-text-muted);
+}
+
+.todo:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--color-surface);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.current .index {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

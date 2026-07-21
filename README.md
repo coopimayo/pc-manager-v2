@@ -16,7 +16,8 @@ type model. What exists today:
 - **Content data** (`src/data/`) — the Fighter class through level 5, its
   Champion subclass, its starting equipment, a set of feats (fighting styles,
   origin feats, and general feats including Ability Score Improvement), the
-  Human species, the Soldier background, and two example characters.
+  Human and Elf species (the Elf with its Drow, High Elf, and Wood Elf
+  lineages), the Soldier background, and two example characters.
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability scores with chosen and feat increases folded in (capped
   at 20) and their modifiers, proficiency bonus, initiative (feat
@@ -44,8 +45,8 @@ type model. What exists today:
   attacks) and any level-1 feat choice such as the Fighter's Fighting Style —
   then opens the finished sheet.
 
-Not yet built: more species and backgrounds (an example character references an
-Elf and a Criminal that don't exist yet); spells; armour and AC; persistence
+Not yet built: more species and backgrounds (an example character references a
+Criminal background that doesn't exist yet); spells; armour and AC; persistence
 (created characters last only until a refresh).
 See [Not yet modelled](docs/domain-model.md#not-yet-modelled) for the rest.
 
@@ -71,7 +72,7 @@ src/
   types/              domain type model — see docs/domain-model.md
   data/               content instances and example characters
     classes/          the Fighter, its features, Champion subclass and equipment
-    species/          the Human
+    species/          the Human, and the Elf with its lineages
     backgrounds/      the Soldier
     items/            weapons, armour and gear
     characters/       example characters
@@ -144,6 +145,12 @@ it:
   ("one skill of your choice") is display-only; its Versatile trait declares a
   `grantFeat` for an origin feat, but nothing prompts for it yet. The creator
   also ignores the background's starting equipment and tool proficiency.
+- The `Effect` union covers no species mechanics, so every Elf and lineage trait
+  is display-only: there's no kind for a sense (Darkvision), a conditional-save
+  advantage (Fey Ancestry), a rest change (Trance), a speed override (Wood Elf),
+  a skill choice constrained to a named set (Keen Senses' three skills), or a
+  spell grant that is level-gated with a choose-your-casting-ability (the
+  lineages' spells) — and there are no spells to grant yet.
 - `ClassFeature` and a granted ability each carry their own name and
   description, so Second Wind's name and text are authored twice. Every feature
   now reaches `Sheet.features`, so an ability-granting feature shows under both

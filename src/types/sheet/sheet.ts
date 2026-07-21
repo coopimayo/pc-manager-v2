@@ -10,6 +10,7 @@ import type { SheetTrait } from './sheet-trait';
 export interface Sheet {
   name: string;
   species?: string;
+  subspecies?: string;
   background?: string;
   classes: SheetClass[];
   level: number;

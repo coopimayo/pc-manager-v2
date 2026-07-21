@@ -7,6 +7,7 @@ import { champion } from '../data/classes/fighter/champion';
 import { fighter } from '../data/classes/fighter/fighter';
 import { feats } from '../data/feats';
 import { weapons } from '../data/items';
+import { elf, elfSubspecies, woodElf } from '../data/species/elf';
 import { human } from '../data/species/human';
 import { abilityModifier, derive, proficiencyBonus } from './derive';
 
@@ -138,6 +139,26 @@ describe('derive', () => {
 
     it('hides nothing by default', () => {
       expect(sheet.features.some((feature) => feature.hidden)).toBe(false);
+    });
+  });
+
+  describe('subspecies', () => {
+    const data = { classes: [fighter], species: [elf], subspecies: elfSubspecies };
+
+    it('folds the chosen subspecies traits and name into the sheet', () => {
+      const chosen = derive({ ...veraQuickblade, subspeciesId: woodElf.id }, data);
+
+      expect(chosen.subspecies).toBe('Wood Elf');
+      const traitIds = chosen.traits.map((trait) => trait.id);
+      expect(traitIds).toContain('elf-keen-senses');
+      expect(traitIds).toContain('wood-elf-magic');
+    });
+
+    it('omits subspecies traits until one is chosen', () => {
+      const unchosen = derive(veraQuickblade, data);
+
+      expect(unchosen.subspecies).toBeUndefined();
+      expect(unchosen.traits.some((trait) => trait.id === 'wood-elf-magic')).toBe(false);
     });
   });
 

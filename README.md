@@ -17,7 +17,7 @@ type model. What exists today:
   Champion subclass, its starting equipment, a set of feats (fighting styles,
   origin feats, and general feats including Ability Score Improvement), the
   Human and Elf species (the Elf with its Drow, High Elf, and Wood Elf
-  lineages), the Soldier background, and two example characters.
+  lineages), all sixteen 2024 backgrounds, and two example characters.
 - **Derivation layer** (`src/lib/derive.ts`) — folds a character and its content
   into a `Sheet`: ability scores with chosen and feat increases folded in (capped
   at 20) and their modifiers, proficiency bonus, initiative (feat
@@ -30,14 +30,16 @@ type model. What exists today:
   against class level and `'proficiencyBonus'` uses against the character's bonus
   (Lucky's Luck Points), and weapon attacks with their to-hit and damage (feat
   `attackRollBonus` effects fold into the to-hit). The background's fixed skills
-  and origin feat fold in by id, and the species contributes its name and traits;
-  ids that don't resolve are skipped.
+  and origin feat fold in by id, and the species — plus the chosen subspecies —
+  contributes its name and traits; ids that don't resolve are skipped.
 - **UI** (`src/pages/`, `src/components/`) — a dashboard listing characters, and a
   character sheet with a click-to-spend use tracker on each limited-use ability
   and a **Level Up** button that re-derives the sheet. Leveling into a feat slot
   (like the level-4 ASI) opens a dialog to pick the feat and, for Ability Score
   Improvement, allocate the +2 / +1 increase; leveling into the level-3 subclass
-  feature opens a dialog to pick a subclass (e.g. Champion). A **New Character**
+  feature opens a dialog to pick a subclass (e.g. Champion); a character whose
+  species has lineages but hasn't chosen one (like the example Elf) shows a
+  prompt on its sheet that opens a lineage picker. A **New Character**
   creator, reached from the dashboard, builds a level-1 character: name, species,
   background (with its +2/+1 ability allocation), class, standard-array ability
   scores, the class's skill picks (skills the background already grants are
@@ -45,9 +47,8 @@ type model. What exists today:
   attacks) and any level-1 feat choice such as the Fighter's Fighting Style —
   then opens the finished sheet.
 
-Not yet built: more species and backgrounds (an example character references a
-Criminal background that doesn't exist yet); spells; armour and AC; persistence
-(created characters last only until a refresh).
+Not yet built: more species (only the Human and Elf so far); spells; armour and
+AC.
 See [Not yet modelled](docs/domain-model.md#not-yet-modelled) for the rest.
 
 ## Development
@@ -73,7 +74,7 @@ src/
   data/               content instances and example characters
     classes/          the Fighter, its features, Champion subclass and equipment
     species/          the Human, and the Elf with its lineages
-    backgrounds/      the Soldier
+    backgrounds/      all sixteen 2024 backgrounds
     items/            weapons, armour and gear
     characters/       example characters
   lib/                framework-agnostic logic
@@ -88,7 +89,8 @@ src/
   components/         reusable presentational components
     FeatChoiceDialog/ the level-up feat picker + ASI allocator
     SubclassChoiceDialog/ the level-3 subclass picker
-  hooks/              reusable React hooks
+    SubspeciesChoiceDialog/ the species lineage picker
+  hooks/              reusable React hooks (usePersistentCharacters)
   styles/             global CSS
   test/setup.ts       Vitest setup (jest-dom matchers, cleanup)
 ```
@@ -99,12 +101,14 @@ that uses them; app-wide styles live in `src/styles/global.css`.
 Navigation is a `useState` in `App.tsx`, not a router — there is no URL per
 character, and a refresh returns to the dashboard.
 
-Player edits — spent ability uses, and **Level Up** (which raises the primary
-class level and can add a chosen feat with its ability-score increases, or a
-chosen subclass) — are
-held in local `useState` in `CharacterSheet`. Leaving the sheet discards them,
-since there is no persistence yet. Created characters are appended to a
-`useState` list in `App`, so they survive navigation but not a refresh.
+The character list lives in `usePersistentCharacters`, which seeds from the two
+example characters, mirrors every change to `localStorage`, and reloads it on
+startup. Character edits flow through `onChange` — **Level Up** (raising the
+primary class level and adding a chosen feat with its ability-score increases, or
+a chosen subclass), a species' subspecies choice, and which cards are hidden —
+and created characters are added the same way, so both survive a refresh. Spent
+ability uses are the exception: they're local `useState` in `CharacterSheet` and
+reset when you leave the sheet.
 
 ## Domain model
 
@@ -112,8 +116,9 @@ The type model is the heart of the project: plain, declarative data describing
 D&D content, kept strictly separate from the character *instance* that
 references it. The guiding ideas —
 
-- **Content is referenced by id.** A `Character` points at a species, classes,
-  a background and feats by their ids; it never embeds their definitions.
+- **Content is referenced by id.** A `Character` points at a species (and
+  subspecies), classes, a background and feats by their ids; it never embeds
+  their definitions.
 - **Creation decisions are `Choice<T>`.** "Choose 2 skills from a list" or
   "starting equipment A or B" share one generic shape.
 - **Mechanical benefits are `Effect`s.** A shared discriminated union carried by
@@ -141,10 +146,9 @@ it:
 - `EquipmentPackage.items` has no quantity, so "8 javelins" isn't expressible.
 - `derive` skips content ids it can't resolve, so a typo yields a plausible
   sheet with 0 hit points rather than an error.
-- A trait that offers a choice has no `Effect` kind, so the Human's Skillful
-  ("one skill of your choice") is display-only; its Versatile trait declares a
-  `grantFeat` for an origin feat, but nothing prompts for it yet. The creator
-  also ignores the background's starting equipment and tool proficiency.
+- Species-granted feats aren't offered at creation: the Human's Versatile trait
+  declares a `grantFeat` for an origin feat, but nothing prompts for it. The
+  creator also ignores the background's starting equipment and tool proficiency.
 - The `Effect` union covers most species mechanics only as text: there's no kind
   for a sense (Darkvision), a conditional-save advantage (Fey Ancestry), a rest
   change (Trance), a speed override (Wood Elf), or a spell grant that is

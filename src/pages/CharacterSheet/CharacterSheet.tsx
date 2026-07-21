@@ -2,11 +2,12 @@ import { useState } from 'react';
 
 import { FeatChoiceDialog } from '../../components/FeatChoiceDialog';
 import { SubclassChoiceDialog } from '../../components/SubclassChoiceDialog';
+import { SubspeciesChoiceDialog } from '../../components/SubspeciesChoiceDialog';
 import { backgrounds } from '../../data/backgrounds';
 import { classes, subclasses } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
-import { species } from '../../data/species';
+import { species, subspecies } from '../../data/species';
 import { derive, grantedFeatCategory, grantsSubclass } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
 import type { Ability, Character, Skill } from '../../types';
@@ -132,13 +133,25 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
     character: Character;
     feature: ClassFeature;
   } | null>(null);
-  const sheet = derive(character, { classes, weapons, feats, subclasses, species, backgrounds });
+  const availableSubspecies = subspecies.filter((entry) => entry.speciesId === character.speciesId);
+  const needsSubspecies = availableSubspecies.length > 0 && !character.subspeciesId;
+  const [choosingSubspecies, setChoosingSubspecies] = useState(false);
+  const sheet = derive(character, {
+    classes,
+    weapons,
+    feats,
+    subclasses,
+    species,
+    subspecies,
+    backgrounds,
+  });
   const summary = sheet.classes.map((entry) => `${entry.name} ${entry.level}`).join(' / ');
   const subclassLine = sheet.classes
     .map((entry) => entry.subclass)
     .filter((name): name is string => Boolean(name))
     .join(' / ');
-  const originLine = [sheet.species, sheet.background]
+  const speciesLine = sheet.subspecies ? `${sheet.species} (${sheet.subspecies})` : sheet.species;
+  const originLine = [speciesLine, sheet.background]
     .filter((name): name is string => Boolean(name))
     .join(' · ');
   const canLevelUp = sheet.level < 20;
@@ -229,6 +242,11 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
     setPendingSubclass(null);
   }
 
+  function chooseSubspecies(subspeciesId: string) {
+    setCharacter({ ...character, subspeciesId });
+    setChoosingSubspecies(false);
+  }
+
   return (
     <>
     <main className={styles.page}>
@@ -278,6 +296,15 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
           {originLine ? `${originLine} · ${summary}` : summary}
         </p>
         {subclassLine ? <p className={styles.subclass}>{subclassLine}</p> : null}
+        {needsSubspecies ? (
+          <button
+            type="button"
+            className={styles.lineagePrompt}
+            onClick={() => setChoosingSubspecies(true)}
+          >
+            Choose your {sheet.species} lineage
+          </button>
+        ) : null}
       </header>
 
       <section className={styles.section}>
@@ -443,6 +470,14 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
         options={pendingSubclassOptions}
         onChoose={chooseSubclass}
         onCancel={() => setPendingSubclass(null)}
+      />
+    ) : null}
+    {choosingSubspecies && needsSubspecies ? (
+      <SubspeciesChoiceDialog
+        speciesName={sheet.species ?? 'Species'}
+        options={availableSubspecies}
+        onChoose={chooseSubspecies}
+        onCancel={() => setChoosingSubspecies(false)}
       />
     ) : null}
     </>

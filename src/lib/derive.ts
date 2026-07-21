@@ -2,7 +2,7 @@ import type { Ability, Background, Character, Die, Effect, Feat, FeatCategory, L
 import type { Class, ClassFeature, Subclass } from '../types/class';
 import type { Uses } from '../types/effect';
 import type { AttackType, Weapon } from '../types/item';
-import type { Species } from '../types/species';
+import type { Species, Subspecies } from '../types/species';
 import type {
   Sheet,
   SheetAbility,
@@ -21,6 +21,7 @@ export interface DeriveData {
   feats?: Feat[];
   subclasses?: Subclass[];
   species?: Species[];
+  subspecies?: Subspecies[];
   backgrounds?: Background[];
 }
 
@@ -229,12 +230,15 @@ function unarmedStrike(featEffects: Effect[], strength: number, bonus: number): 
 }
 
 export function derive(character: Character, data: DeriveData = {}): Sheet {
-  const { classes = [], weapons = [], feats = [], subclasses = [], species = [], backgrounds = [] } = data;
+  const { classes = [], weapons = [], feats = [], subclasses = [], species = [], subspecies = [], backgrounds = [] } = data;
 
   const level = character.classes.reduce((total, taken) => total + taken.level, 0);
   const bonus = proficiencyBonus(level);
 
   const chosenSpecies = species.find((entry) => entry.id === character.speciesId);
+  const chosenSubspecies = subspecies.find(
+    (entry) => entry.id === character.subspeciesId && entry.speciesId === character.speciesId,
+  );
   const chosenBackground = backgrounds.find((entry) => entry.id === character.backgroundId);
   const featIds = [
     ...new Set([
@@ -303,6 +307,7 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
   return {
     name: character.name,
     species: chosenSpecies?.name,
+    subspecies: chosenSubspecies?.name,
     background: chosenBackground?.name,
     classes: sheetClasses,
     level,
@@ -315,12 +320,14 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     features: features.map((taken) =>
       sheetFeature(taken, hiddenFeatureIds.has(taken.feature.id)),
     ),
-    traits: (chosenSpecies?.traits ?? []).map(({ id, name, description }) => ({
-      id,
-      name,
-      description,
-      hidden: hiddenTraitIds.has(id),
-    })),
+    traits: [...(chosenSpecies?.traits ?? []), ...(chosenSubspecies?.traits ?? [])].map(
+      ({ id, name, description }) => ({
+        id,
+        name,
+        description,
+        hidden: hiddenTraitIds.has(id),
+      }),
+    ),
     feats: characterFeats,
     abilities: [...abilities, ...sheetAbilities(featEffects, level, bonus)],
     attacks: attacksFor(character, weapons, featEffects, abilityModifiers, bonus),

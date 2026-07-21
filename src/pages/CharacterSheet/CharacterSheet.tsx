@@ -115,14 +115,16 @@ function HideableCards<Item extends { id: string; name: string; description: str
 interface CharacterSheetProps {
   character: Character;
   onChange: (character: Character) => void;
+  onDelete: () => void;
   onBack: () => void;
 }
 
-export function CharacterSheet({ character, onChange, onBack }: CharacterSheetProps) {
+export function CharacterSheet({ character, onChange, onDelete, onBack }: CharacterSheetProps) {
   function setCharacter(next: Character | ((current: Character) => Character)) {
     onChange(typeof next === 'function' ? next(character) : next);
   }
   const [remaining, setRemaining] = useState<Record<string, number>>({});
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [pending, setPending] = useState<{ character: Character; feature: ClassFeature } | null>(
     null,
   );
@@ -234,15 +236,40 @@ export function CharacterSheet({ character, onChange, onBack }: CharacterSheetPr
         <button type="button" className={styles.back} onClick={onBack}>
           ← All characters
         </button>
-        <button
-          type="button"
-          className={styles.levelUp}
-          onClick={levelUp}
-          disabled={!canLevelUp}
-          title={canLevelUp ? undefined : 'Maximum level reached'}
-        >
-          Level Up
-        </button>
+        <div className={styles.actions}>
+          {confirmingDelete ? (
+            <>
+              <span className={styles.confirmPrompt}>Delete {sheet.name}?</span>
+              <button type="button" className={styles.deleteConfirm} onClick={onDelete}>
+                Delete
+              </button>
+              <button
+                type="button"
+                className={styles.back}
+                onClick={() => setConfirmingDelete(false)}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className={styles.delete}
+              onClick={() => setConfirmingDelete(true)}
+            >
+              Delete
+            </button>
+          )}
+          <button
+            type="button"
+            className={styles.levelUp}
+            onClick={levelUp}
+            disabled={!canLevelUp}
+            title={canLevelUp ? undefined : 'Maximum level reached'}
+          >
+            Level Up
+          </button>
+        </div>
       </div>
 
       <header className={styles.header}>

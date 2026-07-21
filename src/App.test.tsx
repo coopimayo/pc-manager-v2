@@ -339,6 +339,37 @@ describe('App', () => {
     expect(screen.getByText('2 characters')).toBeInTheDocument();
   });
 
+  it('deletes a character from its sheet after confirming', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('heading', { name: 'Vera Quickblade' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    expect(screen.getByRole('heading', { name: 'Characters' })).toBeInTheDocument();
+    expect(screen.getByText('1 character')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Vera Quickblade/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps a deletion after the app is reloaded', async () => {
+    const user = userEvent.setup();
+    const first = render(<App />);
+
+    await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    first.unmount();
+    render(<App />);
+
+    expect(screen.queryByRole('button', { name: /Vera Quickblade/ })).not.toBeInTheDocument();
+  });
+
   it('returns to the dashboard from a sheet', async () => {
     const user = userEvent.setup();
     render(<App />);

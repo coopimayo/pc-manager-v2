@@ -35,6 +35,10 @@ export function App() {
             current.map((character) => (character.id === updated.id ? updated : character)),
           )
         }
+        onDelete={() => {
+          setCharacters((current) => current.filter((character) => character.id !== selected.id));
+          setSelectedId(null);
+        }}
         onBack={() => setSelectedId(null)}
       />
     );

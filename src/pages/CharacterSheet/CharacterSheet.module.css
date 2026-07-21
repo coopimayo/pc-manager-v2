@@ -369,3 +369,45 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.confirmPrompt {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.delete {
+  padding: 0.35rem 0.7rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.delete:hover {
+  color: #d64545;
+}
+
+.deleteConfirm {
+  padding: 0.35rem 0.9rem;
+  border: 0;
+  border-radius: 6px;
+  background: #d64545;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteConfirm:hover {
+  opacity: 0.85;
+}

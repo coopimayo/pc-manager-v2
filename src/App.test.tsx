@@ -134,16 +134,6 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'New Character' })).toBeInTheDocument();
     const next = () => screen.getByRole('button', { name: /Next/ });
 
-    // Basics
-    await user.type(screen.getByLabelText('Name'), 'Torin Oakenshield');
-    await user.selectOptions(screen.getByLabelText('STR'), '15');
-    await user.selectOptions(screen.getByLabelText('DEX'), '13');
-    await user.selectOptions(screen.getByLabelText('CON'), '14');
-    await user.selectOptions(screen.getByLabelText('INT'), '10');
-    await user.selectOptions(screen.getByLabelText('WIS'), '12');
-    await user.selectOptions(screen.getByLabelText('CHA'), '8');
-    await user.click(next());
-
     // Species
     await user.click(screen.getByRole('button', { name: /Human/ }));
     await user.click(screen.getByRole('button', { name: 'Stealth' }));
@@ -165,6 +155,16 @@ describe('App', () => {
     await user.click(within(skillsSection).getByRole('button', { name: 'Perception' }));
     await user.click(screen.getByRole('button', { name: /Option A/ }));
     await user.click(screen.getByRole('button', { name: /Archery/ }));
+    await user.click(next());
+
+    // Basics
+    await user.type(screen.getByLabelText('Name'), 'Torin Oakenshield');
+    await user.selectOptions(screen.getByLabelText('STR'), '15');
+    await user.selectOptions(screen.getByLabelText('DEX'), '13');
+    await user.selectOptions(screen.getByLabelText('CON'), '14');
+    await user.selectOptions(screen.getByLabelText('INT'), '10');
+    await user.selectOptions(screen.getByLabelText('WIS'), '12');
+    await user.selectOptions(screen.getByLabelText('CHA'), '8');
     await user.click(next());
 
     // Review
@@ -207,18 +207,6 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'New Character' }));
     const next = () => screen.getByRole('button', { name: /Next/ });
 
-    // Basics
-    expect(next()).toBeDisabled();
-    await user.type(screen.getByLabelText('Name'), 'Torin');
-    await user.selectOptions(screen.getByLabelText('STR'), '15');
-    await user.selectOptions(screen.getByLabelText('DEX'), '13');
-    await user.selectOptions(screen.getByLabelText('CON'), '14');
-    await user.selectOptions(screen.getByLabelText('INT'), '10');
-    await user.selectOptions(screen.getByLabelText('WIS'), '12');
-    await user.selectOptions(screen.getByLabelText('CHA'), '8');
-    expect(next()).toBeEnabled();
-    await user.click(next());
-
     // Species — Human's Skillful trait needs a skill before advancing
     expect(next()).toBeDisabled();
     await user.click(screen.getByRole('button', { name: /Human/ }));
@@ -254,6 +242,18 @@ describe('App', () => {
     expect(next()).toBeEnabled();
     await user.click(next());
 
+    // Basics
+    expect(next()).toBeDisabled();
+    await user.type(screen.getByLabelText('Name'), 'Torin');
+    await user.selectOptions(screen.getByLabelText('STR'), '15');
+    await user.selectOptions(screen.getByLabelText('DEX'), '13');
+    await user.selectOptions(screen.getByLabelText('CON'), '14');
+    await user.selectOptions(screen.getByLabelText('INT'), '10');
+    await user.selectOptions(screen.getByLabelText('WIS'), '12');
+    await user.selectOptions(screen.getByLabelText('CHA'), '8');
+    expect(next()).toBeEnabled();
+    await user.click(next());
+
     // Review
     expect(screen.getByRole('button', { name: 'Create Character' })).toBeEnabled();
   });
@@ -264,16 +264,6 @@ describe('App', () => {
 
     await user.click(screen.getByRole('button', { name: 'New Character' }));
     const next = () => screen.getByRole('button', { name: /Next/ });
-
-    // Basics
-    await user.type(screen.getByLabelText('Name'), 'Selene Highmore');
-    await user.selectOptions(screen.getByLabelText('STR'), '15');
-    await user.selectOptions(screen.getByLabelText('DEX'), '13');
-    await user.selectOptions(screen.getByLabelText('CON'), '14');
-    await user.selectOptions(screen.getByLabelText('INT'), '10');
-    await user.selectOptions(screen.getByLabelText('WIS'), '12');
-    await user.selectOptions(screen.getByLabelText('CHA'), '8');
-    await user.click(next());
 
     // Species
     await user.click(screen.getByRole('button', { name: /Human/ }));
@@ -306,6 +296,16 @@ describe('App', () => {
     await user.click(within(skillsSection).getByRole('button', { name: 'Perception' }));
     await user.click(screen.getByRole('button', { name: /Option A/ }));
     await user.click(screen.getByRole('button', { name: /Archery/ }));
+    await user.click(next());
+
+    // Basics
+    await user.type(screen.getByLabelText('Name'), 'Selene Highmore');
+    await user.selectOptions(screen.getByLabelText('STR'), '15');
+    await user.selectOptions(screen.getByLabelText('DEX'), '13');
+    await user.selectOptions(screen.getByLabelText('CON'), '14');
+    await user.selectOptions(screen.getByLabelText('INT'), '10');
+    await user.selectOptions(screen.getByLabelText('WIS'), '12');
+    await user.selectOptions(screen.getByLabelText('CHA'), '8');
     await user.click(next());
 
     // Review

@@ -105,13 +105,14 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const ready = basicsDone && speciesDone && backgroundDone && classDone;
 
   const steps = [
-    { label: 'Basics', done: basicsDone },
     { label: 'Species', done: speciesDone },
     { label: 'Background', done: backgroundDone },
     { label: 'Class', done: classDone },
+    { label: 'Basics', done: basicsDone },
     { label: 'Review', done: ready },
   ];
   const lastStep = steps.length - 1;
+  const currentStep = steps[step]?.label;
   const currentDone = steps[step]?.done ?? false;
 
   function goTo(index: number) {
@@ -210,7 +211,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
 
       <Stepper steps={steps} current={step} onGo={goTo} />
 
-      {step === 0 ? (
+      {currentStep === 'Basics' ? (
         <>
           <section className={styles.section}>
             <h2 className={styles.heading}>Identity</h2>
@@ -312,7 +313,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
         </>
       ) : null}
 
-      {step === 1 ? (
+      {currentStep === 'Species' ? (
         <section className={styles.section}>
           <h2 className={styles.heading}>Species</h2>
           <OptionList options={species} selectedId={speciesId} onSelect={selectSpecies} />
@@ -337,7 +338,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
         </section>
       ) : null}
 
-      {step === 2 ? (
+      {currentStep === 'Background' ? (
         <section className={styles.section}>
           <h2 className={styles.heading}>Background</h2>
           <OptionList options={backgrounds} selectedId={backgroundId} onSelect={selectBackground} />
@@ -374,7 +375,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
         </section>
       ) : null}
 
-      {step === 3 ? (
+      {currentStep === 'Class' ? (
         <>
           <section className={styles.section}>
             <h2 className={styles.heading}>Class</h2>
@@ -436,7 +437,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
         </>
       ) : null}
 
-      {step === 4 ? (
+      {currentStep === 'Review' ? (
         <section className={styles.section}>
           <h2 className={styles.heading}>Review</h2>
           <dl className={styles.review}>

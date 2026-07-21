@@ -447,16 +447,15 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /Wisdom/ }));
     await user.click(screen.getByRole('button', { name: 'Confirm' }));
 
-    const spellsSection = screen
-      .getByRole('heading', { name: 'Spells' })
-      .closest('section') as HTMLElement;
+    await user.click(screen.getByRole('button', { name: /Open spellbook/ }));
+
     // Druidcraft (cantrip) and Longstrider (unlocked at level 3) are known; the
     // level-5 spell is not yet.
-    expect(within(spellsSection).getByText('Druidcraft')).toBeInTheDocument();
-    expect(within(spellsSection).getByText('Longstrider')).toBeInTheDocument();
-    expect(within(spellsSection).queryByText('Pass without Trace')).not.toBeInTheDocument();
+    expect(screen.getByText('Druidcraft')).toBeInTheDocument();
+    expect(screen.getByText('Longstrider')).toBeInTheDocument();
+    expect(screen.queryByText('Pass without Trace')).not.toBeInTheDocument();
     // The chosen casting ability drives the header (WIS 13 → +1, proficiency +2).
-    expect(within(spellsSection).getByText('WIS')).toBeInTheDocument();
-    expect(within(spellsSection).getByText('11')).toBeInTheDocument();
+    expect(screen.getByText('WIS')).toBeInTheDocument();
+    expect(screen.getByText('11')).toBeInTheDocument();
   });
 });

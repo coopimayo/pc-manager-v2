@@ -1,6 +1,7 @@
 import type { Ability, Die, Skill, Choice } from '../common';
 import type { EquipmentPackage, Weapon, ArtisanTools, Armor } from '../item';
 import type { ClassFeature } from './feature';
+import type { ClassSpellcasting } from './spellcasting';
 
 export interface Class {
   id: string;
@@ -15,4 +16,5 @@ export interface Class {
   armorProficiencies: Armor['name'][];
   startingEquipment: Choice<EquipmentPackage>;
   features: ClassFeature[];
+  spellcasting?: ClassSpellcasting;
 }

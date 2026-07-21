@@ -1,4 +1,5 @@
 import type { ClassFeature } from './feature';
+import type { ClassSpellcasting } from './spellcasting';
 
 export interface Subclass {
   id: string;
@@ -6,4 +7,5 @@ export interface Subclass {
   name: string;
   description: string;
   features: ClassFeature[];
+  spellcasting?: ClassSpellcasting;
 }

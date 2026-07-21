@@ -10,6 +10,7 @@ import { weapons } from '../data/items';
 import { elf, elfSubspecies, woodElf } from '../data/species/elf';
 import { human } from '../data/species/human';
 import { spells } from '../data/spells';
+import type { Class } from '../types/class';
 import { abilityModifier, derive, grantedSpellIds, proficiencyBonus } from './derive';
 
 describe('abilityModifier', () => {
@@ -500,6 +501,63 @@ describe('spellbook', () => {
 
     expect(nonCaster.spells).toEqual([]);
     expect(nonCaster.spellcasting).toBeUndefined();
+  });
+});
+
+describe('spell slots', () => {
+  const fullCaster: Class = {
+    ...fighter,
+    id: 'wizard',
+    spellcasting: { ability: 'int', progression: 'full' },
+  };
+  const halfCaster: Class = {
+    ...fighter,
+    id: 'paladin',
+    spellcasting: { ability: 'cha', progression: 'half' },
+  };
+  const thirdCaster: Class = {
+    ...fighter,
+    id: 'trickster',
+    spellcasting: { ability: 'int', progression: 'third' },
+  };
+
+  function slotsAt(definition: Class, level: number) {
+    return derive(
+      { ...exampleFighter, classes: [{ classId: definition.id, level }] },
+      { classes: [definition] },
+    ).spellSlots;
+  }
+
+  it('gives a full caster the standard slots for their level', () => {
+    expect(slotsAt(fullCaster, 1)).toEqual([{ level: 1, total: 2 }]);
+    expect(slotsAt(fullCaster, 5)).toEqual([
+      { level: 1, total: 4 },
+      { level: 2, total: 3 },
+      { level: 3, total: 2 },
+    ]);
+  });
+
+  it('advances a half caster at half their level, rounded down', () => {
+    expect(slotsAt(halfCaster, 1)).toEqual([]);
+    expect(slotsAt(halfCaster, 5)).toEqual([{ level: 1, total: 3 }]);
+  });
+
+  it('advances a third caster at a third of their level, rounded down', () => {
+    expect(slotsAt(thirdCaster, 2)).toEqual([]);
+    expect(slotsAt(thirdCaster, 3)).toEqual([{ level: 1, total: 2 }]);
+  });
+
+  it('gives a non-caster no slots', () => {
+    expect(slotsAt(fighter, 5)).toEqual([]);
+  });
+
+  it('takes the casting ability from the spellcasting class', () => {
+    const sheet = derive(
+      { ...exampleFighter, classes: [{ classId: 'wizard', level: 3 }] },
+      { classes: [fullCaster] },
+    );
+
+    expect(sheet.spellcasting?.ability).toBe('int');
   });
 });
 

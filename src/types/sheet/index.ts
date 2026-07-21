@@ -6,4 +6,5 @@ export type { SheetFeature } from './sheet-feature';
 export type { SheetClass } from './sheet-class';
 export type { SheetSkill } from './sheet-skill';
 export type { SheetSpell } from './sheet-spell';
+export type { SheetSpellSlot } from './sheet-spell-slot';
 export type { SheetTrait } from './sheet-trait';

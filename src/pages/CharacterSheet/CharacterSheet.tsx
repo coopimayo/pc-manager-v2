@@ -119,9 +119,16 @@ interface CharacterSheetProps {
   onChange: (character: Character) => void;
   onDelete: () => void;
   onBack: () => void;
+  onOpenSpells: () => void;
 }
 
-export function CharacterSheet({ character, onChange, onDelete, onBack }: CharacterSheetProps) {
+export function CharacterSheet({
+  character,
+  onChange,
+  onDelete,
+  onBack,
+  onOpenSpells,
+}: CharacterSheetProps) {
   function setCharacter(next: Character | ((current: Character) => Character)) {
     onChange(typeof next === 'function' ? next(character) : next);
   }
@@ -155,6 +162,15 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
   const speciesLine = sheet.subspecies ? `${sheet.species} (${sheet.subspecies})` : sheet.species;
   const originLine = [speciesLine, sheet.background]
     .filter((name): name is string => Boolean(name))
+    .join(' · ');
+  const topSlot = sheet.spellSlots.at(-1);
+  const spellsSummary = [
+    sheet.spells.length > 0
+      ? `${sheet.spells.length} ${sheet.spells.length === 1 ? 'spell' : 'spells'} known`
+      : undefined,
+    topSlot ? `slots to level ${topSlot.level}` : undefined,
+  ]
+    .filter((part): part is string => Boolean(part))
     .join(' · ');
   const canLevelUp = sheet.level < 20;
   const backgroundFeatId = backgrounds.find(
@@ -432,47 +448,16 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
         )}
       </section>
 
-      {sheet.spells.length > 0 ? (
+      {sheet.spells.length > 0 || sheet.spellSlots.length > 0 || sheet.spellcasting ? (
         <section className={styles.section}>
           <h2 className={styles.heading}>Spells</h2>
-          {sheet.spellcasting ? (
-            <div className={styles.stats}>
-              <div className={styles.stat}>
-                <span className={styles.statLabel}>Ability</span>
-                <strong className={styles.statValue}>
-                  {sheet.spellcasting.ability.toUpperCase()}
-                </strong>
-              </div>
-              <div className={styles.stat}>
-                <span className={styles.statLabel}>Save DC</span>
-                <strong className={styles.statValue}>{sheet.spellcasting.saveDc}</strong>
-              </div>
-              <div className={styles.stat}>
-                <span className={styles.statLabel}>Spell Attack</span>
-                <strong className={styles.statValue}>
-                  {signed(sheet.spellcasting.attackBonus)}
-                </strong>
-              </div>
-            </div>
-          ) : null}
-          <ul className={styles.cards}>
-            {sheet.spells.map((spell) => (
-              <li key={spell.name} className={styles.card}>
-                <div className={styles.cardHead}>
-                  <strong>{spell.name}</strong>
-                  <span className={styles.badge}>
-                    {spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`}
-                  </span>
-                </div>
-                <p className={styles.cardMeta}>
-                  {[titleCase(spell.school), spell.castingTime, spell.range, spell.duration].join(
-                    ' · ',
-                  )}
-                </p>
-                <p className={styles.cardBody}>{spell.description}</p>
-              </li>
-            ))}
-          </ul>
+          <button type="button" className={styles.spellsLink} onClick={onOpenSpells}>
+            <span className={styles.spellsLinkLabel}>Open spellbook</span>
+            <span className={styles.spellsLinkMeta}>{spellsSummary}</span>
+            <span className={styles.spellsLinkArrow} aria-hidden>
+              →
+            </span>
+          </button>
         </section>
       ) : null}
 

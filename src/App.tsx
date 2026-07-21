@@ -3,12 +3,19 @@ import { useState } from 'react';
 import { usePersistentCharacters } from './hooks/usePersistentCharacters';
 import { CharacterCreator } from './pages/CharacterCreator';
 import { CharacterSheet } from './pages/CharacterSheet';
+import { CharacterSpells } from './pages/CharacterSpells';
 import { Dashboard } from './pages/Dashboard';
 
 export function App() {
   const [characters, setCharacters] = usePersistentCharacters();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [characterView, setCharacterView] = useState<'sheet' | 'spells'>('sheet');
+
+  function selectCharacter(id: string | null) {
+    setSelectedId(id);
+    setCharacterView('sheet');
+  }
 
   if (creating) {
     return (
@@ -17,7 +24,7 @@ export function App() {
         onCreate={(character) => {
           setCharacters((current) => [...current, character]);
           setCreating(false);
-          setSelectedId(character.id);
+          selectCharacter(character.id);
         }}
         onCancel={() => setCreating(false)}
       />
@@ -27,6 +34,12 @@ export function App() {
   const selected = characters.find((character) => character.id === selectedId);
 
   if (selected) {
+    if (characterView === 'spells') {
+      return (
+        <CharacterSpells character={selected} onBack={() => setCharacterView('sheet')} />
+      );
+    }
+
     return (
       <CharacterSheet
         character={selected}
@@ -37,9 +50,10 @@ export function App() {
         }
         onDelete={() => {
           setCharacters((current) => current.filter((character) => character.id !== selected.id));
-          setSelectedId(null);
+          selectCharacter(null);
         }}
-        onBack={() => setSelectedId(null)}
+        onBack={() => selectCharacter(null)}
+        onOpenSpells={() => setCharacterView('spells')}
       />
     );
   }
@@ -47,7 +61,7 @@ export function App() {
   return (
     <Dashboard
       characters={characters}
-      onSelect={setSelectedId}
+      onSelect={selectCharacter}
       onCreate={() => setCreating(true)}
     />
   );

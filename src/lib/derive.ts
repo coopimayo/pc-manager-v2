@@ -13,6 +13,7 @@ import type {
   SheetFeature,
   SheetSkill,
   SheetSpell,
+  SheetSpellSlot,
 } from '../types/sheet';
 import { effectOfKind, effectsOfKind, type EffectOfKind } from './effects';
 import { skillAbilities } from './skill-abilities';
@@ -246,6 +247,53 @@ function unarmedStrike(featEffects: Effect[], strength: number, bonus: number): 
   };
 }
 
+const spellSlotsByCasterLevel: number[][] = [
+  [],
+  [2],
+  [3],
+  [4, 2],
+  [4, 3],
+  [4, 3, 2],
+  [4, 3, 3],
+  [4, 3, 3, 1],
+  [4, 3, 3, 2],
+  [4, 3, 3, 3, 1],
+  [4, 3, 3, 3, 2],
+  [4, 3, 3, 3, 2, 1],
+  [4, 3, 3, 3, 2, 1],
+  [4, 3, 3, 3, 2, 1, 1],
+  [4, 3, 3, 3, 2, 1, 1],
+  [4, 3, 3, 3, 2, 1, 1, 1],
+  [4, 3, 3, 3, 2, 1, 1, 1],
+  [4, 3, 3, 3, 2, 1, 1, 1, 1],
+  [4, 3, 3, 3, 3, 1, 1, 1, 1],
+  [4, 3, 3, 3, 3, 2, 1, 1, 1],
+  [4, 3, 3, 3, 3, 2, 2, 1, 1],
+];
+
+function casterLevel(taken: ResolvedClass[]): number {
+  return taken.reduce((total, { definition, subclass, level }) => {
+    const casting = definition.spellcasting ?? subclass?.spellcasting;
+    if (!casting) return total;
+    if (casting.progression === 'full') return total + level;
+    if (casting.progression === 'half') return total + Math.floor(level / 2);
+    return total + Math.floor(level / 3);
+  }, 0);
+}
+
+function spellSlotsFor(taken: ResolvedClass[]): SheetSpellSlot[] {
+  const row = spellSlotsByCasterLevel[Math.min(casterLevel(taken), 20)] ?? [];
+  return row
+    .map((total, index) => ({ level: index + 1, total }))
+    .filter((slot) => slot.total > 0);
+}
+
+function castingAbilityFor(taken: ResolvedClass[]): Ability | undefined {
+  return taken
+    .map(({ definition, subclass }) => (definition.spellcasting ?? subclass?.spellcasting)?.ability)
+    .find((ability): ability is Ability => ability !== undefined);
+}
+
 function spellsFor(character: Character, spells: Spell[]): SheetSpell[] {
   return character.spellbook.knownSpellIds
     .flatMap((id) => {
@@ -334,7 +382,8 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
   );
 
   const sheetSpells = spellsFor(character, spells);
-  const castingAbility = character.spellbook.castingAbility;
+  const spellSlots = spellSlotsFor(taken);
+  const castingAbility = castingAbilityFor(taken) ?? character.spellbook.castingAbility;
   const spellcasting =
     castingAbility !== undefined
       ? {
@@ -372,6 +421,7 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     abilities: [...abilities, ...sheetAbilities(featEffects, level, bonus)],
     attacks: attacksFor(character, weapons, featEffects, abilityModifiers, bonus),
     spells: sheetSpells,
+    spellSlots,
     spellcasting,
   };
 }

@@ -200,6 +200,27 @@ describe('App', () => {
     expect(card).toHaveTextContent('12 HP');
   });
 
+  it('loads a legacy stored character that predates the spellbook field', () => {
+    // A character persisted before spellbooks existed has no spellbook; the app
+    // must normalize it on load rather than crash while deriving the sheet.
+    const legacy = {
+      id: 'old-save',
+      name: 'Legacy Hero',
+      speciesId: 'human',
+      backgroundId: 'soldier',
+      classes: [{ classId: 'fighter', level: 1 }],
+      abilityScores: { str: 16, dex: 13, con: 15, int: 10, wis: 12, cha: 8 },
+      skillProficiencies: ['athletics'],
+      featIds: [],
+      weaponIds: ['greatsword'],
+    };
+    localStorage.setItem('pc-manager:characters', JSON.stringify([legacy]));
+
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: /Legacy Hero/ })).toBeInTheDocument();
+  });
+
   it('forces an Elf lineage choice during creation and grants its spell', async () => {
     const user = userEvent.setup();
     render(<App />);

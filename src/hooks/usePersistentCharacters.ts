@@ -5,10 +5,14 @@ import type { Character } from '../types';
 
 const STORAGE_KEY = 'pc-manager:characters';
 
+function normalize(character: Character): Character {
+  return { ...character, spellbook: character.spellbook ?? { knownSpellIds: [] } };
+}
+
 function load(): Character[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Character[]) : initialCharacters;
+    return raw ? (JSON.parse(raw) as Character[]).map(normalize) : initialCharacters;
   } catch {
     return initialCharacters;
   }

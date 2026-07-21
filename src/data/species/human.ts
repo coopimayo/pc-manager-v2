@@ -19,7 +19,7 @@ export const human: Species = {
       id: 'human-skillful',
       name: 'Skillful',
       description: 'You gain proficiency in one skill of your choice.',
-      effects: [],
+      effects: [{ kind: 'skillProficiencyChoice', count: 1 }],
     },
     {
       id: 'human-versatile',

@@ -37,10 +37,13 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const [scores, setScores] = useState<Partial<Record<Ability, number>>>({});
   const [skills, setSkills] = useState<Skill[]>([]);
   const [featSkills, setFeatSkills] = useState<Skill[]>([]);
+  const [speciesSkills, setSpeciesSkills] = useState<Skill[]>([]);
   const [equipmentLabel, setEquipmentLabel] = useState<string | null>(null);
   const [featChoices, setFeatChoices] = useState<Record<string, string>>({});
 
   const chosenSpecies = species.find((entry) => entry.id === speciesId);
+  const speciesEffects = (chosenSpecies?.traits ?? []).flatMap((trait) => trait.effects);
+  const speciesSkillChoice = effectOfKind(speciesEffects, 'skillProficiencyChoice');
   const chosenBackground = backgrounds.find((entry) => entry.id === backgroundId);
   const backgroundFeat = feats.find((entry) => entry.id === chosenBackground?.featId);
   const featSkillChoice = effectOfKind(backgroundFeat?.effects ?? [], 'skillProficiencyChoice');
@@ -64,8 +67,15 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
     scoresComplete &&
     skills.length === chosen.skillProficiencies.choose &&
     (featSkillChoice === undefined || featSkills.length === featSkillChoice.count) &&
+    (speciesSkillChoice === undefined || speciesSkills.length === speciesSkillChoice.count) &&
     equipment !== undefined &&
     featFeatures.every((feature) => featChoices[feature.id] !== undefined);
+
+  function selectSpecies(id: string) {
+    if (id === speciesId) return;
+    setSpeciesId(id);
+    setSpeciesSkills([]);
+  }
 
   function selectBackground(id: string) {
     if (id === backgroundId) return;
@@ -103,7 +113,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
       classes: [{ classId: chosen.id, level: 1 }],
       abilityScores: scores as Record<Ability, number>,
       abilityScoreIncreases: { ...bonuses },
-      skillProficiencies: [...new Set([...skills, ...featSkills])],
+      skillProficiencies: [...new Set([...skills, ...featSkills, ...speciesSkills])],
       featIds: featFeatures.flatMap((feature) => {
         const featId = featChoices[feature.id];
         return featId ? [featId] : [];
@@ -144,7 +154,23 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Species</h2>
-        <OptionList options={species} selectedId={speciesId} onSelect={setSpeciesId} />
+        <OptionList options={species} selectedId={speciesId} onSelect={selectSpecies} />
+        {chosenSpecies && speciesSkillChoice ? (
+          <div className={styles.allocation}>
+            <p className={styles.hint}>
+              {chosenSpecies.name} grants proficiency in any {speciesSkillChoice.count} skill
+              {speciesSkillChoice.count === 1 ? '' : 's'} — {speciesSkills.length} of{' '}
+              {speciesSkillChoice.count} chosen.
+            </p>
+            <SkillToggleGrid
+              options={allSkills}
+              selected={speciesSkills}
+              locked={[...grantedSkills, ...skills, ...featSkills]}
+              max={speciesSkillChoice.count}
+              onChange={setSpeciesSkills}
+            />
+          </div>
+        ) : null}
       </section>
 
       <section className={styles.section}>
@@ -174,7 +200,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
             <SkillToggleGrid
               options={allSkills}
               selected={featSkills}
-              locked={[...grantedSkills, ...skills]}
+              locked={[...grantedSkills, ...skills, ...speciesSkills]}
               max={featSkillChoice.count}
               onChange={setFeatSkills}
             />
@@ -249,7 +275,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
             <SkillToggleGrid
               options={chosen.skillProficiencies.from}
               selected={skills}
-              locked={[...grantedSkills, ...featSkills]}
+              locked={[...grantedSkills, ...featSkills, ...speciesSkills]}
               max={chosen.skillProficiencies.choose}
               onChange={setSkills}
             />

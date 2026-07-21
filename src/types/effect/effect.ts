@@ -11,7 +11,7 @@ export type Effect =
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
-  | { kind: 'skillProficiencyChoice'; count: number }
+  | { kind: 'skillProficiencyChoice'; count: number; from?: Skill[] }
   | { kind: 'grantFeat'; category: FeatCategory }
   | { kind: 'grantSubclass' }
   | { kind: 'replaceFeature'; featureId: string }

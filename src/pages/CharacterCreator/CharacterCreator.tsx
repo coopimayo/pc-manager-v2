@@ -158,12 +158,14 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
         {chosenSpecies && speciesSkillChoice ? (
           <div className={styles.allocation}>
             <p className={styles.hint}>
-              {chosenSpecies.name} grants proficiency in any {speciesSkillChoice.count} skill
-              {speciesSkillChoice.count === 1 ? '' : 's'} — {speciesSkills.length} of{' '}
-              {speciesSkillChoice.count} chosen.
+              {chosenSpecies.name} grants proficiency in{' '}
+              {speciesSkillChoice.from
+                ? `${speciesSkillChoice.count} of ${speciesSkillChoice.from.map(titleCase).join(', ')}`
+                : `any ${speciesSkillChoice.count} skill${speciesSkillChoice.count === 1 ? '' : 's'}`}{' '}
+              — {speciesSkills.length} of {speciesSkillChoice.count} chosen.
             </p>
             <SkillToggleGrid
-              options={allSkills}
+              options={speciesSkillChoice.from ?? allSkills}
               selected={speciesSkills}
               locked={[...grantedSkills, ...skills, ...featSkills]}
               max={speciesSkillChoice.count}

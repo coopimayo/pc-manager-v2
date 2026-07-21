@@ -145,12 +145,12 @@ it:
   ("one skill of your choice") is display-only; its Versatile trait declares a
   `grantFeat` for an origin feat, but nothing prompts for it yet. The creator
   also ignores the background's starting equipment and tool proficiency.
-- The `Effect` union covers no species mechanics, so every Elf and lineage trait
-  is display-only: there's no kind for a sense (Darkvision), a conditional-save
-  advantage (Fey Ancestry), a rest change (Trance), a speed override (Wood Elf),
-  a skill choice constrained to a named set (Keen Senses' three skills), or a
-  spell grant that is level-gated with a choose-your-casting-ability (the
-  lineages' spells) — and there are no spells to grant yet.
+- The `Effect` union covers most species mechanics only as text: there's no kind
+  for a sense (Darkvision), a conditional-save advantage (Fey Ancestry), a rest
+  change (Trance), a speed override (Wood Elf), or a spell grant that is
+  level-gated with a choose-your-casting-ability (the lineages' spells) — and
+  there are no spells to grant yet. Keen Senses' constrained skill pick is
+  modelled: `skillProficiencyChoice` takes an optional `from` list of skills.
 - `ClassFeature` and a granted ability each carry their own name and
   description, so Second Wind's name and text are authored twice. Every feature
   now reaches `Sheet.features`, so an ability-granting feature shows under both

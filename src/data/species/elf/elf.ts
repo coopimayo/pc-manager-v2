@@ -35,7 +35,13 @@ export const elf: Species = {
       name: 'Keen Senses',
       description:
         'You have proficiency in the Insight, Perception, or Survival skill.',
-      effects: [],
+      effects: [
+        {
+          kind: 'skillProficiencyChoice',
+          count: 1,
+          from: ['insight', 'perception', 'survival'],
+        },
+      ],
     },
     {
       id: 'elf-trance',

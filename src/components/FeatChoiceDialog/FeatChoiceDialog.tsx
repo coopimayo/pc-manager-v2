@@ -93,7 +93,7 @@ export function FeatChoiceDialog({
             Choose {skillChoice.count} skills — {skills.length} of {skillChoice.count} chosen.
           </p>
           <SkillToggleGrid
-            options={allSkills}
+            options={skillChoice.from ?? allSkills}
             selected={skills}
             locked={proficientSkills}
             max={skillChoice.count}

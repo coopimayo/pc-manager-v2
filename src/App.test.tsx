@@ -200,6 +200,67 @@ describe('App', () => {
     expect(card).toHaveTextContent('12 HP');
   });
 
+  it('forces an Elf lineage choice during creation and grants its spell', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'New Character' }));
+    const next = () => screen.getByRole('button', { name: /Next/ });
+
+    // Species — Elf needs a Keen Senses skill, a lineage, and (for High Elf) a
+    // spellcasting ability before the step is complete.
+    await user.click(screen.getByRole('button', { name: /Elf/ }));
+    await user.click(screen.getByRole('button', { name: 'Perception' }));
+    expect(next()).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /High Elf/ }));
+    expect(next()).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: /Intelligence/ }));
+    expect(next()).toBeEnabled();
+    await user.click(next());
+
+    // Background
+    await user.click(screen.getByRole('button', { name: /Soldier/ }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase STR' }));
+    await user.click(screen.getByRole('button', { name: 'Increase CON' }));
+    await user.click(next());
+
+    // Class
+    await user.click(screen.getByRole('button', { name: /Fighter/ }));
+    const skillsSection = screen
+      .getByRole('heading', { name: 'Skills' })
+      .closest('section') as HTMLElement;
+    await user.click(within(skillsSection).getByRole('button', { name: 'Acrobatics' }));
+    await user.click(within(skillsSection).getByRole('button', { name: 'History' }));
+    await user.click(screen.getByRole('button', { name: /Option A/ }));
+    await user.click(screen.getByRole('button', { name: /Archery/ }));
+    await user.click(next());
+
+    // Basics
+    await user.type(screen.getByLabelText('Name'), 'Aelar');
+    await user.selectOptions(screen.getByLabelText('STR'), '15');
+    await user.selectOptions(screen.getByLabelText('DEX'), '14');
+    await user.selectOptions(screen.getByLabelText('CON'), '13');
+    await user.selectOptions(screen.getByLabelText('INT'), '12');
+    await user.selectOptions(screen.getByLabelText('WIS'), '10');
+    await user.selectOptions(screen.getByLabelText('CHA'), '8');
+    await user.click(next());
+
+    // Review, then create.
+    await user.click(screen.getByRole('button', { name: 'Create Character' }));
+
+    // The sheet opens with the lineage already set — no after-the-fact prompt.
+    expect(screen.getByText(/Elf \(High Elf\)/)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Choose your Elf lineage/ }),
+    ).not.toBeInTheDocument();
+
+    // The High Elf cantrip is known, cast off the chosen Intelligence ability.
+    await user.click(screen.getByRole('button', { name: /Open spellbook/ }));
+    expect(screen.getByText('Prestidigitation')).toBeInTheDocument();
+    expect(screen.getByText('INT')).toBeInTheDocument();
+  });
+
   it('gates each step until its choices are made', async () => {
     const user = userEvent.setup();
     render(<App />);

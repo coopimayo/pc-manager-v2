@@ -8,8 +8,13 @@ import { backgrounds } from '../../data/backgrounds';
 import { classes } from '../../data/classes';
 import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
-import { species } from '../../data/species';
-import { abilityModifier, grantedFeatCategory } from '../../lib/derive';
+import { species, subspecies } from '../../data/species';
+import {
+  abilityModifier,
+  grantedFeatCategory,
+  grantedSpellIds,
+  grantsCastingChoice,
+} from '../../lib/derive';
 import { effectOfKind } from '../../lib/effects';
 import { signed, titleCase } from '../../lib/format';
 import { skillAbilities } from '../../lib/skill-abilities';
@@ -18,6 +23,15 @@ import { describePackage, uniqueId } from './index';
 import styles from './CharacterCreator.module.css';
 
 const abilityOrder: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+const castingAbilities: Ability[] = ['int', 'wis', 'cha'];
+const abilityNames: Record<Ability, string> = {
+  str: 'Strength',
+  dex: 'Dexterity',
+  con: 'Constitution',
+  int: 'Intelligence',
+  wis: 'Wisdom',
+  cha: 'Charisma',
+};
 const allSkills = Object.keys(skillAbilities) as Skill[];
 const standardArray = [15, 14, 13, 12, 10, 8];
 const backgroundPoints = 3;
@@ -54,6 +68,8 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [speciesId, setSpeciesId] = useState<string | null>(null);
+  const [subspeciesId, setSubspeciesId] = useState<string | null>(null);
+  const [castingAbility, setCastingAbility] = useState<Ability | null>(null);
   const [backgroundId, setBackgroundId] = useState<string | null>(null);
   const [bonuses, setBonuses] = useState<Partial<Record<Ability, number>>>({});
   const [classId, setClassId] = useState<string | null>(null);
@@ -68,6 +84,11 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const chosenSpecies = species.find((entry) => entry.id === speciesId);
   const speciesEffects = (chosenSpecies?.traits ?? []).flatMap((trait) => trait.effects);
   const speciesSkillChoice = effectOfKind(speciesEffects, 'skillProficiencyChoice');
+  const availableSubspecies = subspecies.filter((entry) => entry.speciesId === speciesId);
+  const chosenSubspecies = availableSubspecies.find((entry) => entry.id === subspeciesId);
+  const needsCastingAbility = chosenSubspecies
+    ? grantsCastingChoice(chosenSubspecies.traits)
+    : false;
   const chosenBackground = backgrounds.find((entry) => entry.id === backgroundId);
   const backgroundFeat = feats.find((entry) => entry.id === chosenBackground?.featId);
   const featSkillChoice = effectOfKind(backgroundFeat?.effects ?? [], 'skillProficiencyChoice');
@@ -92,7 +113,9 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
   const basicsDone = name.trim() !== '' && abilitiesDone;
   const speciesDone =
     chosenSpecies !== undefined &&
-    (speciesSkillChoice === undefined || speciesSkills.length === speciesSkillChoice.count);
+    (speciesSkillChoice === undefined || speciesSkills.length === speciesSkillChoice.count) &&
+    (availableSubspecies.length === 0 ||
+      (chosenSubspecies !== undefined && (!needsCastingAbility || castingAbility !== null)));
   const backgroundDone =
     chosenBackground !== undefined &&
     bonusRemaining === 0 &&
@@ -123,6 +146,14 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
     if (id === speciesId) return;
     setSpeciesId(id);
     setSpeciesSkills([]);
+    setSubspeciesId(null);
+    setCastingAbility(null);
+  }
+
+  function selectSubspecies(id: string) {
+    if (id === subspeciesId) return;
+    setSubspeciesId(id);
+    setCastingAbility(null);
   }
 
   function selectBackground(id: string) {
@@ -159,10 +190,12 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
 
   function create() {
     if (!chosen || !chosenSpecies || !chosenBackground || !equipment || !scoresComplete) return;
+    const lineageSpells = chosenSubspecies ? grantedSpellIds(chosenSubspecies.traits, 1) : [];
     onCreate({
       id: uniqueId(name, takenIds),
       name: name.trim(),
       speciesId: chosenSpecies.id,
+      subspeciesId: chosenSubspecies?.id,
       backgroundId: chosenBackground.id,
       classes: [{ classId: chosen.id, level: 1 }],
       abilityScores: scores as Record<Ability, number>,
@@ -175,7 +208,10 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
       weaponIds: equipment.items
         .filter((item) => weapons.some((weapon) => weapon.id === item.id))
         .map((item) => item.id),
-      spellbook: { knownSpellIds: [] },
+      spellbook: {
+        castingAbility: castingAbility ?? undefined,
+        knownSpellIds: [...new Set(lineageSpells)],
+      },
     });
   }
 
@@ -335,6 +371,34 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
               />
             </div>
           ) : null}
+          {chosenSpecies && availableSubspecies.length > 0 ? (
+            <div className={styles.allocation}>
+              <p className={styles.hint}>Choose your {chosenSpecies.name} lineage.</p>
+              <OptionList
+                options={availableSubspecies.map((entry) => ({
+                  id: entry.id,
+                  name: entry.name,
+                  description: entry.traits.map((trait) => trait.name).join(' · '),
+                }))}
+                selectedId={subspeciesId}
+                onSelect={selectSubspecies}
+              />
+              {needsCastingAbility ? (
+                <div className={styles.allocation}>
+                  <p className={styles.hint}>Choose its spellcasting ability.</p>
+                  <OptionList
+                    options={castingAbilities.map((ability) => ({
+                      id: ability,
+                      name: abilityNames[ability],
+                      description: ability.toUpperCase(),
+                    }))}
+                    selectedId={castingAbility}
+                    onSelect={(id) => setCastingAbility(id as Ability)}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -448,7 +512,7 @@ export function CharacterCreator({ takenIds, onCreate, onCancel }: CharacterCrea
             <div className={styles.reviewRow}>
               <dt className={styles.reviewTerm}>Species</dt>
               <dd className={styles.reviewValue}>
-                {[chosenSpecies?.name, speciesSkills.map(titleCase).join(', ')]
+                {[chosenSpecies?.name, chosenSubspecies?.name, speciesSkills.map(titleCase).join(', ')]
                   .filter(Boolean)
                   .join(' · ') || '—'}
               </dd>

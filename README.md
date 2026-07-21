@@ -45,7 +45,10 @@ isn't empty. Leveling into a feat slot
   Improvement, allocate the +2 / +1 increase; leveling into the level-3 subclass
   feature opens a dialog to pick a subclass (e.g. Champion); a character whose
   species has lineages but hasn't chosen one (like the example Elf) shows a
-  prompt on its sheet that opens a lineage picker. A **New Character**
+  prompt on its sheet that opens a lineage picker — which also chooses the
+  lineage's spellcasting ability and writes its cantrip (and the level-3/5 spells
+  the character already qualifies for) into the spellbook, with later spells
+  added on Level Up. A **New Character**
   creator, reached from the dashboard, builds a level-1 character: name, species,
   background (with its +2/+1 ability allocation), class, standard-array ability
   scores, the class's skill picks (skills the background already grants are
@@ -53,8 +56,10 @@ isn't empty. Leveling into a feat slot
   attacks) and any level-1 feat choice such as the Fighter's Fighting Style —
   then opens the finished sheet.
 
-Not yet built: more species (only the Human and Elf so far); spell slots and the
-wiring that grants the Elf lineages' spells; armour and AC.
+Not yet built: more species (only the Human and Elf so far); spell slots and
+preparation (the Elf lineages' spells are granted, but the once-per-Long-Rest
+limit on their leveled spells and the High Elf's cantrip swap aren't tracked);
+armour and AC.
 See [Not yet modelled](docs/domain-model.md#not-yet-modelled) for the rest.
 
 ## Development
@@ -156,14 +161,15 @@ it:
 - Species-granted feats aren't offered at creation: the Human's Versatile trait
   declares a `grantFeat` for an origin feat, but nothing prompts for it. The
   creator also ignores the background's starting equipment and tool proficiency.
-- The `Effect` union covers most species mechanics only as text: there's no kind
+- The `Effect` union covers some species mechanics only as text: there's no kind
   for a sense (Darkvision), a conditional-save advantage (Fey Ancestry), a rest
-  change (Trance), or a speed override (Wood Elf). The lineages' spells now exist
-  as content and a character carries a stored `spellbook` (known spell ids and a
-  chosen casting ability) that derives onto the sheet, but the `grantSpells`
-  effect that would populate it from a lineage — level-gated at character levels
-  3 and 5 — isn't wired yet. Keen Senses' constrained skill pick is modelled:
-  `skillProficiencyChoice` takes an optional `from` list of skills.
+  change (Trance), or a speed override (Wood Elf). Keen Senses' constrained skill
+  pick is modelled (`skillProficiencyChoice` takes an optional `from` list of
+  skills), and the lineages' spells are now wired: the `grantSpells` effect
+  carries each spell's unlock level and a `'choice'` casting ability, and the
+  lineage picker writes the granted spells and the chosen ability into the
+  character's `spellbook` (later spells added on Level Up). Still text-only on
+  those grants: the once-per-Long-Rest limit and the High Elf's cantrip swap.
 - `ClassFeature` and a granted ability each carry their own name and
   description, so Second Wind's name and text are authored twice. Every feature
   now reaches `Sheet.features`, so an ability-granting feature shows under both

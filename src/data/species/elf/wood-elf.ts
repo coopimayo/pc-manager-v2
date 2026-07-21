@@ -16,7 +16,17 @@ export const woodElf: Subspecies = {
       name: 'Wood Elf Magic',
       description:
         'You know the Druidcraft cantrip. Starting at character level 3, you can cast the Longstrider spell with this trait, and starting at level 5, you can also cast the Pass without Trace spell with it. Once you cast Longstrider or Pass without Trace with this trait, you can\'t cast that spell with it again until you finish a Long Rest. You can also cast these spells using any spell slots you have. Intelligence, Wisdom, or Charisma is your spellcasting ability for them (choose when you select this lineage).',
-      effects: [],
+      effects: [
+        {
+          kind: 'grantSpells',
+          castingAbility: 'choice',
+          spells: [
+            { spellId: 'druidcraft' },
+            { spellId: 'longstrider', atLevel: 3 },
+            { spellId: 'pass-without-trace', atLevel: 5 },
+          ],
+        },
+      ],
     },
   ],
 };

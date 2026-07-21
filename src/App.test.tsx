@@ -434,4 +434,29 @@ describe('App', () => {
 
     expect(screen.getByRole('heading', { name: 'Characters' })).toBeInTheDocument();
   });
+
+  it('grants an Elf lineage its level-gated spells and chosen casting ability', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    // Vera is a level-3 Elf who has not chosen a lineage yet.
+    await user.click(screen.getByRole('button', { name: /Vera Quickblade/ }));
+    await user.click(screen.getByRole('button', { name: /Choose your Elf lineage/ }));
+
+    await user.click(screen.getByRole('button', { name: /Wood Elf/ }));
+    await user.click(screen.getByRole('button', { name: /Wisdom/ }));
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    const spellsSection = screen
+      .getByRole('heading', { name: 'Spells' })
+      .closest('section') as HTMLElement;
+    // Druidcraft (cantrip) and Longstrider (unlocked at level 3) are known; the
+    // level-5 spell is not yet.
+    expect(within(spellsSection).getByText('Druidcraft')).toBeInTheDocument();
+    expect(within(spellsSection).getByText('Longstrider')).toBeInTheDocument();
+    expect(within(spellsSection).queryByText('Pass without Trace')).not.toBeInTheDocument();
+    // The chosen casting ability drives the header (WIS 13 → +1, proficiency +2).
+    expect(within(spellsSection).getByText('WIS')).toBeInTheDocument();
+    expect(within(spellsSection).getByText('11')).toBeInTheDocument();
+  });
 });

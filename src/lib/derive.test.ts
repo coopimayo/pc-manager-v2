@@ -10,7 +10,7 @@ import { weapons } from '../data/items';
 import { elf, elfSubspecies, woodElf } from '../data/species/elf';
 import { human } from '../data/species/human';
 import { spells } from '../data/spells';
-import { abilityModifier, derive, proficiencyBonus } from './derive';
+import { abilityModifier, derive, grantedSpellIds, proficiencyBonus } from './derive';
 
 describe('abilityModifier', () => {
   it('floors toward negative for odd and low scores', () => {
@@ -500,5 +500,27 @@ describe('spellbook', () => {
 
     expect(nonCaster.spells).toEqual([]);
     expect(nonCaster.spellcasting).toBeUndefined();
+  });
+});
+
+describe('grantedSpellIds', () => {
+  it('grants only the cantrip at level 1', () => {
+    expect(grantedSpellIds(woodElf.traits, 1)).toEqual(['druidcraft']);
+  });
+
+  it('adds the level-3 spell at character level 3', () => {
+    expect(grantedSpellIds(woodElf.traits, 3)).toEqual(['druidcraft', 'longstrider']);
+  });
+
+  it('adds the level-5 spell at character level 5', () => {
+    expect(grantedSpellIds(woodElf.traits, 5)).toEqual([
+      'druidcraft',
+      'longstrider',
+      'pass-without-trace',
+    ]);
+  });
+
+  it('is empty for traits that grant no spells', () => {
+    expect(grantedSpellIds(human.traits, 20)).toEqual([]);
   });
 });

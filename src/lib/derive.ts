@@ -2,7 +2,7 @@ import type { Ability, Background, Character, Die, Effect, Feat, FeatCategory, L
 import type { Class, ClassFeature, Subclass } from '../types/class';
 import type { Uses } from '../types/effect';
 import type { AttackType, Weapon } from '../types/item';
-import type { Species, Subspecies } from '../types/species';
+import type { Species, Subspecies, Trait } from '../types/species';
 import type { Spell } from '../types/spell';
 import type {
   Sheet,
@@ -64,6 +64,20 @@ export function grantedFeatCategory(feature: ClassFeature): FeatCategory | undef
 
 export function grantsSubclass(feature: ClassFeature): boolean {
   return feature.effects.some((effect) => effect.kind === 'grantSubclass');
+}
+
+export function grantedSpellIds(traits: Trait[], characterLevel: number): string[] {
+  return traits
+    .flatMap((trait) => effectsOfKind(trait.effects, 'grantSpells'))
+    .flatMap((effect) => effect.spells)
+    .filter((spell) => (spell.atLevel ?? 1) <= characterLevel)
+    .map((spell) => spell.spellId);
+}
+
+export function grantsCastingChoice(traits: Trait[]): boolean {
+  return traits
+    .flatMap((trait) => effectsOfKind(trait.effects, 'grantSpells'))
+    .some((effect) => effect.castingAbility === 'choice');
 }
 
 function isAbilityScoreImprovement(feat: Feat): boolean {

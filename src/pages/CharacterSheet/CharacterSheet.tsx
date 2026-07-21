@@ -9,7 +9,7 @@ import { feats } from '../../data/feats';
 import { weapons } from '../../data/items';
 import { species, subspecies } from '../../data/species';
 import { spells } from '../../data/spells';
-import { derive, grantedFeatCategory, grantsSubclass } from '../../lib/derive';
+import { derive, grantedFeatCategory, grantedSpellIds, grantsSubclass } from '../../lib/derive';
 import { signed, titleCase } from '../../lib/format';
 import type { Ability, Character, Skill } from '../../types';
 import type { ClassFeature } from '../../types/class';
@@ -178,11 +178,21 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
   const pendingSubclassOptions = pendingSubclass ? subclassOptionsFor(pendingSubclass.character) : [];
 
   function levelUp() {
+    const leveled = character.classes.map((entry, index) =>
+      index === 0 ? { ...entry, level: entry.level + 1 } : entry,
+    );
+    const nextLevel = leveled.reduce((total, entry) => total + entry.level, 0);
+    const lineage = subspecies.find(
+      (entry) => entry.id === character.subspeciesId && entry.speciesId === character.speciesId,
+    );
+    const granted = lineage ? grantedSpellIds(lineage.traits, nextLevel) : [];
     const next: Character = {
       ...character,
-      classes: character.classes.map((entry, index) =>
-        index === 0 ? { ...entry, level: entry.level + 1 } : entry,
-      ),
+      classes: leveled,
+      spellbook: {
+        ...character.spellbook,
+        knownSpellIds: [...new Set([...character.spellbook.knownSpellIds, ...granted])],
+      },
     };
     const gained = featuresGained(character, next);
 
@@ -244,8 +254,17 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
     setPendingSubclass(null);
   }
 
-  function chooseSubspecies(subspeciesId: string) {
-    setCharacter({ ...character, subspeciesId });
+  function chooseSubspecies(subspeciesId: string, castingAbility?: Ability) {
+    const chosen = subspecies.find((entry) => entry.id === subspeciesId);
+    const granted = chosen ? grantedSpellIds(chosen.traits, sheet.level) : [];
+    setCharacter({
+      ...character,
+      subspeciesId,
+      spellbook: {
+        castingAbility: castingAbility ?? character.spellbook.castingAbility,
+        knownSpellIds: [...new Set([...character.spellbook.knownSpellIds, ...granted])],
+      },
+    });
     setChoosingSubspecies(false);
   }
 
@@ -522,6 +541,8 @@ export function CharacterSheet({ character, onChange, onDelete, onBack }: Charac
       <SubspeciesChoiceDialog
         speciesName={sheet.species ?? 'Species'}
         options={availableSubspecies}
+        abilityModifiers={sheet.abilityModifiers}
+        proficiencyBonus={sheet.proficiencyBonus}
         onChoose={chooseSubspecies}
         onCancel={() => setChoosingSubspecies(false)}
       />

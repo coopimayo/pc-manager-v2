@@ -225,7 +225,9 @@ Widen the union as new kinds are needed.
 type Effect =
   | { kind: 'abilityScoreIncrease'; ability: Ability; amount: number }
   | { kind: 'abilityScoreChoice'; points: number; maxPerAbility: number }   // player-allocated, e.g. ASI
-  | { kind: 'grantSpells'; spellIds: string[]; castingAbility: Ability }     // declared, not yet consumed by derive — see Not yet modelled
+  | { kind: 'grantSpells';                                                  // e.g. an Elf lineage; the picker writes these into Character.spellbook
+      spells: { spellId: string; atLevel?: number }[];                      // atLevel defaults to 1; gates when each spell is known
+      castingAbility: Ability | 'choice' }                                  // 'choice' → player picks INT/WIS/CHA when selecting the source
   | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
@@ -390,12 +392,13 @@ Known gaps, roughly in priority order for making the app a functional creator:
   reference an Elf and a Criminal that don't.
 - **Spells & spellcasting** — there is now a `Spell` type, spell data, and a
   stored `Character.spellbook` that `derive` resolves onto the sheet (with the
-  save DC and attack bonus). Still missing: spell *slots* and preparation, and
-  the wiring that would populate the spellbook from a source. The Elf lineages
-  grant a cantrip plus spells unlocked at character levels 3 and 5, with the
-  casting ability chosen when the lineage is picked — `Effect.grantSpells` is
-  declared for this but not yet consumed by `derive`, and it can't yet express
-  the per-spell unlock level or the "choose your casting ability" option.
+  save DC and attack bonus). The Elf lineages grant them through
+  `Effect.grantSpells`, which carries each spell's unlock level and a casting
+  ability that may be `'choice'`; the lineage picker resolves those grants for
+  the character's level and writes the spell ids and chosen ability into the
+  `spellbook` (Level Up adds later spells). Still missing: spell *slots* and
+  preparation, the once-per-Long-Rest limit on the lineages' leveled spells, and
+  the High Elf's cantrip swap.
 - **Languages** and **conditions** — no types yet.
 - **Character detail** — chosen ability-score *bonuses* now live in
   `Character.abilityScoreIncreases` (used by the ASI feat and the creator's

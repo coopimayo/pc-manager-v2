@@ -1,5 +1,5 @@
 import type { Ability, Skill, Choice } from './common';
-import type { EquipmentPackage, ArtisanTools } from './item';
+import type { EquipmentPackage, Tool } from './item';
 
 
 export interface Background {
@@ -9,6 +9,6 @@ export interface Background {
   abilityScores: Ability[];
   featId: string;
   skillProficiencies: Skill[];
-  toolProficiency: ArtisanTools['name'] | 'None';
+  toolProficiency: Tool['name'] | 'None';
   startingEquipment: Choice<EquipmentPackage>;
 }

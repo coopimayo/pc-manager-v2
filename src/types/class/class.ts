@@ -1,5 +1,5 @@
 import type { Ability, Die, Skill, Choice } from '../common';
-import type { EquipmentPackage, Weapon, ArtisanTools, Armor } from '../item';
+import type { EquipmentPackage, Weapon, Tool, Armor } from '../item';
 import type { ClassFeature } from './feature';
 import type { ClassSpellcasting } from './spellcasting';
 
@@ -12,7 +12,7 @@ export interface Class {
   savingThrowProficiencies: Ability[];
   skillProficiencies: Choice<Skill>;
   weaponProficiencies: Weapon['name'][];
-  toolProficiencies: ArtisanTools['name'][];
+  toolProficiencies: Tool['name'][];
   armorProficiencies: Armor['name'][];
   startingEquipment: Choice<EquipmentPackage>;
   features: ClassFeature[];

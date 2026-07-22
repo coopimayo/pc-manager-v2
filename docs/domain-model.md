@@ -88,7 +88,7 @@ interface Class {
   savingThrowProficiencies: Ability[];  // fixed (e.g. Fighter = str + con)
   skillProficiencies: Choice<Skill>;    // a pick: { choose: 2, from: [...] }
   weaponProficiencies: Weapon['name'][];
-  toolProficiencies: ArtisanTools['name'][];
+  toolProficiencies: Tool['name'][];
   armorProficiencies: Armor['name'][];
   startingEquipment: Choice<EquipmentPackage>;  // pick one package (A/B)
   features: ClassFeature[];
@@ -169,7 +169,7 @@ interface Background {
   abilityScores: Ability[];             // the abilities offered (allocate +2/+1 or +1/+1/+1)
   featId: string;                       // → the origin Feat granted
   skillProficiencies: Skill[];          // fixed for a background
-  toolProficiency: ArtisanTools['name'] | 'None';
+  toolProficiency: Tool['name'] | 'None';
   startingEquipment: Choice<EquipmentPackage>;
 }
 ```
@@ -283,7 +283,7 @@ no class level applies.
 
 ### Items — [`item/`](../src/types/item)
 
-`Item` is the base (cost + weight); `Weapon`, `Armor` and `ArtisanTools` extend
+`Item` is the base (cost + weight); `Weapon`, `Armor` and `Tool` extend
 it. An `EquipmentPackage` is a bundle used as the `T` in a
 `Choice<EquipmentPackage>` starting-equipment decision.
 
@@ -315,8 +315,9 @@ interface Weapon extends Item {
   range?: { normal: number; long: number };  // ranged/thrown weapons
 }
 
-interface ArtisanTools extends Item {
-  ability: Ability;                     // added to checks made with the tools
+interface Tool extends Item {
+  ability: Ability;                     // added to checks made with the tool
+  category: 'artisan' | 'other';        // artisan's tools vs. other tools (thieves', navigator's, …)
 }
 
 interface Armor extends Item {
@@ -357,7 +358,7 @@ graph TD
   EquipmentPackage --> Item
   Weapon -. extends .-> Item
   Armor -. extends .-> Item
-  ArtisanTools -. extends .-> Item
+  Tool -. extends .-> Item
 ```
 
 ## Importing

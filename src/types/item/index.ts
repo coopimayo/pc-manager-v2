@@ -1,11 +1,11 @@
 export type { Armor } from './armor';
-export type { ArtisanTools } from './artisan-tools';
 export type { AttackType } from './attack-type';
 export type { CoinUnit } from './coin-unit';
 export type { Cost } from './cost';
 export type { Damage } from './damage';
 export type { EquipmentPackage } from './equipment-package';
 export type { Item } from './item';
+export type { Tool } from './tool';
 export type { Weapon } from './weapon';
 export type { WeaponCategory } from './weapon-category';
 export type { WeaponMastery } from './weapon-mastery';

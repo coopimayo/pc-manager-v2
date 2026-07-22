@@ -4,4 +4,4 @@ export type { Spell, SpellSchool } from './spell';
 export type { Background } from './background';
 export type { Feat, FeatCategory } from './feat';
 export type { Effect } from './effect';
-export type { Item, ArtisanTools, Cost, CoinUnit } from './item';
+export type { Item, Tool, Cost, CoinUnit } from './item';

@@ -6,10 +6,11 @@ import { elf, elfSubspecies } from './elf';
 import { gnome, gnomeSubspecies } from './gnome';
 import { dragonborn, dragonbornSubspecies } from './dragonborn';
 import { goliath, goliathSubspecies } from './goliath';
+import { halfling } from './halfling';
 
-export { aasimar, human, dwarf, elf, gnome, dragonborn, goliath };
+export { aasimar, human, dwarf, elf, gnome, dragonborn, goliath, halfling };
 
-export const species: Species[] = [aasimar, human, dwarf, elf, gnome, dragonborn, goliath];
+export const species: Species[] = [aasimar, human, dwarf, elf, gnome, dragonborn, goliath, halfling];
 export const subspecies: Subspecies[] = [
   ...elfSubspecies,
   ...gnomeSubspecies,

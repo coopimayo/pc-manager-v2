@@ -4,6 +4,7 @@ import type { SheetAttack } from './sheet-attack';
 import type { SheetClass } from './sheet-class';
 import type { SheetFeat } from './sheet-feat';
 import type { SheetFeature } from './sheet-feature';
+import type { SheetSense } from './sheet-sense';
 import type { SheetSkill } from './sheet-skill';
 import type { SheetSpell } from './sheet-spell';
 import type { SheetSpellSlot } from './sheet-spell-slot';
@@ -22,6 +23,7 @@ export interface Sheet {
   abilityScores: Record<Ability, number>;
   abilityModifiers: Record<Ability, number>;
   hitPoints: number;
+  senses: SheetSense[];
   skills: SheetSkill[];
   tools: SheetTool[];
   features: SheetFeature[];

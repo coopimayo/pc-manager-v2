@@ -366,6 +366,20 @@ export function CharacterSheet({
         </div>
       </section>
 
+      {sheet.senses.length > 0 ? (
+        <section className={styles.section}>
+          <h2 className={styles.heading}>Senses</h2>
+          <ul className={styles.skills}>
+            {sheet.senses.map((sense) => (
+              <li key={sense.name} className={styles.skillProficient}>
+                <span>{sense.name}</span>
+                <strong>{sense.range} ft.</strong>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section className={styles.section}>
         <h2 className={styles.heading}>Ability Scores</h2>
         <ul className={styles.abilities}>

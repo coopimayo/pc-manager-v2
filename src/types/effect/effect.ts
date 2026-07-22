@@ -1,6 +1,6 @@
-import type { Ability, Die, LevelScaled, Skill } from '../common';
+import type { Ability, Die, LevelScaled, Sense, Skill } from '../common';
 import type { FeatCategory } from '../feat/feat-category';
-import type { AttackType } from '../item';
+import type { AttackType, WeaponProperty } from '../item';
 import type { Activation } from './activation';
 import type { Uses } from './uses';
 
@@ -20,6 +20,15 @@ export type Effect =
   | { kind: 'grantSubclass' }
   | { kind: 'replaceFeature'; featureId: string }
   | { kind: 'attackRollBonus'; amount: number; attackType: AttackType }
+  | {
+      kind: 'damageRollBonus';
+      amount: number;
+      attackType?: AttackType;
+      weaponProperty?: WeaponProperty;
+      withoutProperty?: WeaponProperty;
+      soleWeapon?: boolean;
+    }
   | { kind: 'initiativeBonus'; amount: number | 'proficiencyBonus' }
   | { kind: 'hitPointMaxBonus'; amountPerLevel: number }
-  | { kind: 'unarmedStrikeDamage'; count: number; die: Die };
+  | { kind: 'unarmedStrikeDamage'; count: number; die: Die }
+  | { kind: 'grantSense'; sense: Sense; range: number };

@@ -1,4 +1,4 @@
-import type { Ability, Background, Character, Die, Effect, Feat, FeatCategory, LevelScaled, Skill } from '../types';
+import type { Ability, Background, Character, Die, Effect, Feat, FeatCategory, LevelScaled, Sense, Skill } from '../types';
 import type { Class, ClassFeature, Subclass } from '../types/class';
 import type { Uses } from '../types/effect';
 import type { AttackType, Tool, Weapon } from '../types/item';
@@ -11,12 +11,14 @@ import type {
   SheetClass,
   SheetFeat,
   SheetFeature,
+  SheetSense,
   SheetSkill,
   SheetSpell,
   SheetSpellSlot,
   SheetTool,
 } from '../types/sheet';
 import { effectOfKind, effectsOfKind, type EffectOfKind } from './effects';
+import { titleCase } from './format';
 import { skillAbilities } from './skill-abilities';
 
 export interface DeriveData {
@@ -102,11 +104,21 @@ function resolveUses(
   return { count, recharge: uses.recharge };
 }
 
+function damageBonusScope(effect: EffectOfKind<'damageRollBonus'>): string {
+  if (effect.weaponProperty) return `${titleCase(effect.weaponProperty)} weapon`;
+  if (effect.attackType) return `${effect.attackType} weapon`;
+  return 'weapon';
+}
+
 function featNote(feat: Feat, proficiency: number, level: number): string | undefined {
   const applied = feat.effects.flatMap((effect) => {
     switch (effect.kind) {
       case 'attackRollBonus':
         return [`+${effect.amount} to ${effect.attackType} attack rolls`];
+      case 'damageRollBonus':
+        return effect.soleWeapon
+          ? []
+          : [`+${effect.amount} to ${damageBonusScope(effect)} damage rolls`];
       case 'abilityScoreIncrease':
         return [`+${effect.amount} ${effect.ability.toUpperCase()}`];
       case 'initiativeBonus':
@@ -203,6 +215,18 @@ function attackAbility(weapon: Weapon, modifiers: Record<Ability, number>): Abil
   return 'str';
 }
 
+function damageBonusApplies(
+  effect: EffectOfKind<'damageRollBonus'>,
+  weapon: Weapon,
+  soleWeapon: boolean,
+): boolean {
+  if (effect.attackType && weapon.attackType !== effect.attackType) return false;
+  if (effect.weaponProperty && !weapon.properties.includes(effect.weaponProperty)) return false;
+  if (effect.withoutProperty && weapon.properties.includes(effect.withoutProperty)) return false;
+  if (effect.soleWeapon && !soleWeapon) return false;
+  return true;
+}
+
 function attacksFor(
   character: Character,
   weapons: Weapon[],
@@ -214,6 +238,13 @@ function attacksFor(
   const featBonusFor = (attackType: AttackType) =>
     attackBonuses
       .filter((effect) => effect.attackType === attackType)
+      .reduce((total, effect) => total + effect.amount, 0);
+
+  const damageBonuses = effectsOfKind(featEffects, 'damageRollBonus');
+  const soleWeapon = character.weaponIds.length === 1;
+  const damageBonusFor = (weapon: Weapon) =>
+    damageBonuses
+      .filter((effect) => damageBonusApplies(effect, weapon, soleWeapon))
       .reduce((total, effect) => total + effect.amount, 0);
 
   const wielded = character.weaponIds.flatMap((id) => {
@@ -230,7 +261,7 @@ function attacksFor(
         damage: {
           count: weapon.damage.count,
           die: weapon.damage.die,
-          modifier,
+          modifier: modifier + damageBonusFor(weapon),
           type: weapon.damage.type,
         },
       },
@@ -310,6 +341,14 @@ function spellsFor(character: Character, spells: Spell[]): SheetSpell[] {
     .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
 }
 
+function sensesFor(effects: Effect[]): SheetSense[] {
+  const ranges = new Map<Sense, number>();
+  effectsOfKind(effects, 'grantSense').forEach((effect) => {
+    ranges.set(effect.sense, Math.max(ranges.get(effect.sense) ?? 0, effect.range));
+  });
+  return [...ranges].map(([sense, range]) => ({ name: titleCase(sense), range }));
+}
+
 export function derive(character: Character, data: DeriveData = {}): Sheet {
   const { classes = [], weapons = [], tools = [], feats = [], subclasses = [], species = [], subspecies = [], backgrounds = [], spells = [] } = data;
 
@@ -381,6 +420,8 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     (trait) => trait.effects,
   );
 
+  const senses = sensesFor([...featEffects, ...traitEffects]);
+
   const sheetClasses: SheetClass[] = taken.map(({ definition, subclass, level: classLevel }) => ({
     name: definition.name,
     subclass: subclass?.name,
@@ -429,6 +470,7 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     abilityScores,
     abilityModifiers,
     hitPoints: hitPointsFor(taken, abilityModifiers.con) + hitPointMaxBonus,
+    senses,
     skills,
     tools: sheetTools,
     features: features.map((taken) =>

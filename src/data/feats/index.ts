@@ -1,10 +1,10 @@
 import type { Feat } from '../../types';
-import { archery } from './fighting-styles';
+import { fightingStyleFeats } from './fighting-styles';
 import { generalFeats } from './general';
 import { originFeats } from './origin';
 
-export { archery };
+export * from './fighting-styles';
 export * from './general';
 export * from './origin';
 
-export const feats: Feat[] = [archery, ...generalFeats, ...originFeats];
+export const feats: Feat[] = [...fightingStyleFeats, ...generalFeats, ...originFeats];

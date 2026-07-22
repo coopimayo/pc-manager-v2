@@ -267,6 +267,69 @@ describe('derive', () => {
         'Already included in your totals: 1d4 Unarmed Strike damage.',
       );
     });
+
+    it('adds a Thrown Weapon Fighting bonus to thrown weapon damage only, and notes it', () => {
+      const thrower = derive(
+        { ...exampleFighter, featIds: ['thrown-weapon-fighting'] },
+        { classes: [fighter], weapons, feats },
+      );
+      expect(thrower.attacks.find((attack) => attack.name === 'Javelin')).toEqual({
+        name: 'Javelin',
+        attackBonus: 5,
+        damage: { count: 1, die: 'd6', modifier: 5, type: 'piercing' },
+      });
+      expect(thrower.attacks.find((attack) => attack.name === 'Greatsword')?.damage.modifier).toBe(
+        3,
+      );
+      expect(thrower.feats.find((feat) => feat.name === 'Thrown Weapon Fighting')?.note).toBe(
+        'Already included in your totals: +2 to Thrown weapon damage rolls.',
+      );
+    });
+
+    it('adds the Dueling bonus to a lone one-handed Melee weapon without claiming it as unconditional', () => {
+      const duelist = derive(
+        { ...exampleFighter, featIds: ['dueling'], weaponIds: ['flail'] },
+        { classes: [fighter], weapons, feats },
+      );
+      expect(duelist.attacks.find((attack) => attack.name === 'Flail')).toEqual({
+        name: 'Flail',
+        attackBonus: 5,
+        damage: { count: 1, die: 'd8', modifier: 5, type: 'bludgeoning' },
+      });
+      expect(duelist.feats.find((feat) => feat.name === 'Dueling')?.note).toBeUndefined();
+    });
+
+    it('withholds the Dueling bonus when another weapon is in hand', () => {
+      const duelist = derive(
+        { ...exampleFighter, featIds: ['dueling'], weaponIds: ['flail', 'dagger'] },
+        { classes: [fighter], weapons, feats },
+      );
+      expect(duelist.attacks.find((attack) => attack.name === 'Flail')?.damage.modifier).toBe(3);
+    });
+
+    it('withholds the Dueling bonus from a two-handed weapon', () => {
+      const duelist = derive(
+        { ...exampleFighter, featIds: ['dueling'], weaponIds: ['greatsword'] },
+        { classes: [fighter], weapons, feats },
+      );
+      expect(duelist.attacks.find((attack) => attack.name === 'Greatsword')?.damage.modifier).toBe(
+        3,
+      );
+    });
+  });
+
+  describe('senses', () => {
+    it('has none by default', () => {
+      expect(derive(exampleFighter, { classes: [fighter] }).senses).toEqual([]);
+    });
+
+    it('grants Blindsight from Blind Fighting', () => {
+      const blindFighter = derive(
+        { ...exampleFighter, featIds: ['blind-fighting'] },
+        { classes: [fighter], weapons, feats },
+      );
+      expect(blindFighter.senses).toEqual([{ name: 'Blindsight', range: 10 }]);
+    });
   });
 
   describe('initiative', () => {

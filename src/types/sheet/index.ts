@@ -4,6 +4,7 @@ export type { SheetAttack, SheetDamage } from './sheet-attack';
 export type { SheetFeat } from './sheet-feat';
 export type { SheetFeature } from './sheet-feature';
 export type { SheetClass } from './sheet-class';
+export type { SheetSense } from './sheet-sense';
 export type { SheetSkill } from './sheet-skill';
 export type { SheetSpell } from './sheet-spell';
 export type { SheetSpellSlot } from './sheet-spell-slot';

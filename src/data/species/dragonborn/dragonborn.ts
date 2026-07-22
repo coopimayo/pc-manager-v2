@@ -10,13 +10,6 @@ export const dragonborn: Species = {
   speed: 30,
   traits: [
     {
-      id: 'dragonborn-draconic-ancestry',
-      name: 'Draconic Ancestry',
-      description:
-        'Your lineage stems from a dragon progenitor. Choose the kind of dragon from the Draconic Ancestors table. Your choice affects your Breath Weapon and Damage Resistance traits as well as your appearance.\n\nBlack (Acid), Blue (Lightning), Brass (Fire), Bronze (Lightning), Copper (Acid), Gold (Fire), Green (Poison), Red (Fire), Silver (Cold), White (Cold).',
-      effects: [],
-    },
-    {
       id: 'dragonborn-breath-weapon',
       name: 'Breath Weapon',
       description:

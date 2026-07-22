@@ -7,6 +7,7 @@ import type { SheetFeature } from './sheet-feature';
 import type { SheetSkill } from './sheet-skill';
 import type { SheetSpell } from './sheet-spell';
 import type { SheetSpellSlot } from './sheet-spell-slot';
+import type { SheetTool } from './sheet-tool';
 import type { SheetTrait } from './sheet-trait';
 
 export interface Sheet {
@@ -22,6 +23,7 @@ export interface Sheet {
   abilityModifiers: Record<Ability, number>;
   hitPoints: number;
   skills: SheetSkill[];
+  tools: SheetTool[];
   features: SheetFeature[];
   traits: SheetTrait[];
   feats: SheetFeat[];

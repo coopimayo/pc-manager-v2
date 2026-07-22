@@ -160,7 +160,10 @@ it:
   sheet with 0 hit points rather than an error.
 - Species-granted feats aren't offered at creation: the Human's Versatile trait
   declares a `grantFeat` for an origin feat, but nothing prompts for it. The
-  creator also ignores the background's starting equipment and tool proficiency.
+  creator also ignores the background's starting equipment, and offers no tool
+  *choice* — a background's tool proficiency is granted and shown on the sheet
+  (as a check with its associated ability), but "Artisan's Tools" resolves to no
+  single ability and so appears by name only.
 - The `Effect` union covers some species mechanics only as text: there's no kind
   for a sense (Darkvision), a conditional-save advantage (Fey Ancestry), a rest
   change (Trance), or a speed override (Wood Elf). Keen Senses' constrained skill

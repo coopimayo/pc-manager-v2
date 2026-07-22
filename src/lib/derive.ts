@@ -1,7 +1,7 @@
 import type { Ability, Background, Character, Die, Effect, Feat, FeatCategory, LevelScaled, Skill } from '../types';
 import type { Class, ClassFeature, Subclass } from '../types/class';
 import type { Uses } from '../types/effect';
-import type { AttackType, Weapon } from '../types/item';
+import type { AttackType, Tool, Weapon } from '../types/item';
 import type { Species, Subspecies, Trait } from '../types/species';
 import type { Spell } from '../types/spell';
 import type {
@@ -14,6 +14,7 @@ import type {
   SheetSkill,
   SheetSpell,
   SheetSpellSlot,
+  SheetTool,
 } from '../types/sheet';
 import { effectOfKind, effectsOfKind, type EffectOfKind } from './effects';
 import { skillAbilities } from './skill-abilities';
@@ -21,6 +22,7 @@ import { skillAbilities } from './skill-abilities';
 export interface DeriveData {
   classes?: Class[];
   weapons?: Weapon[];
+  tools?: Tool[];
   feats?: Feat[];
   subclasses?: Subclass[];
   species?: Species[];
@@ -309,7 +311,7 @@ function spellsFor(character: Character, spells: Spell[]): SheetSpell[] {
 }
 
 export function derive(character: Character, data: DeriveData = {}): Sheet {
-  const { classes = [], weapons = [], feats = [], subclasses = [], species = [], subspecies = [], backgrounds = [], spells = [] } = data;
+  const { classes = [], weapons = [], tools = [], feats = [], subclasses = [], species = [], subspecies = [], backgrounds = [], spells = [] } = data;
 
   const level = character.classes.reduce((total, taken) => total + taken.level, 0);
   const bonus = proficiencyBonus(level);
@@ -351,6 +353,22 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
   });
 
   const taken = resolveClasses(character, classes, subclasses);
+
+  const toolProficiencies = [
+    ...new Set([
+      ...(chosenBackground && chosenBackground.toolProficiency !== 'None'
+        ? [chosenBackground.toolProficiency]
+        : []),
+      ...taken.flatMap(({ definition }) => definition.toolProficiencies),
+      ...(character.toolProficiencies ?? []),
+    ]),
+  ];
+  const sheetTools: SheetTool[] = toolProficiencies.map((name) => {
+    const tool = tools.find((entry) => entry.name === name);
+    if (!tool) return { name };
+    return { name, ability: tool.ability, modifier: abilityModifiers[tool.ability] + bonus };
+  });
+
   const features = featuresFor(taken);
   const hiddenFeatureIds = new Set(character.hiddenFeatureIds ?? []);
   const hiddenTraitIds = new Set(character.hiddenTraitIds ?? []);
@@ -412,6 +430,7 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     abilityModifiers,
     hitPoints: hitPointsFor(taken, abilityModifiers.con) + hitPointMaxBonus,
     skills,
+    tools: sheetTools,
     features: features.map((taken) =>
       sheetFeature(taken, hiddenFeatureIds.has(taken.feature.id)),
     ),

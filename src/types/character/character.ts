@@ -1,4 +1,5 @@
 import type { Ability, Skill } from '../common';
+import type { Tool } from '../item';
 import type { CharacterClass } from './character-class';
 import type { Spellbook } from './spellbook';
 
@@ -12,6 +13,7 @@ export interface Character {
   abilityScores: Record<Ability, number>;
   abilityScoreIncreases?: Partial<Record<Ability, number>>;
   skillProficiencies: Skill[];
+  toolProficiencies?: Tool['name'][];
   featIds: string[];
   weaponIds: string[];
   spellbook: Spellbook;

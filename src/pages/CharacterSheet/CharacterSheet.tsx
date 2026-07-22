@@ -6,7 +6,7 @@ import { SubspeciesChoiceDialog } from '../../components/SubspeciesChoiceDialog'
 import { backgrounds } from '../../data/backgrounds';
 import { classes, subclasses } from '../../data/classes';
 import { feats } from '../../data/feats';
-import { weapons } from '../../data/items';
+import { tools, weapons } from '../../data/items';
 import { species, subspecies } from '../../data/species';
 import { spells } from '../../data/spells';
 import { derive, grantedFeatCategory, grantedSpellIds, grantsSubclass } from '../../lib/derive';
@@ -147,6 +147,7 @@ export function CharacterSheet({
   const sheet = derive(character, {
     classes,
     weapons,
+    tools,
     feats,
     subclasses,
     species,
@@ -394,6 +395,25 @@ export function CharacterSheet({
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.heading}>Tools</h2>
+        {sheet.tools.length === 0 ? (
+          <p className={styles.empty}>No tool proficiencies.</p>
+        ) : (
+          <ul className={styles.skills}>
+            {sheet.tools.map((tool) => (
+              <li key={tool.name} className={styles.skillProficient}>
+                <span>{tool.name}</span>
+                {tool.ability ? (
+                  <span className={styles.skillAbility}>{tool.ability.toUpperCase()}</span>
+                ) : null}
+                {tool.modifier !== undefined ? <strong>{signed(tool.modifier)}</strong> : null}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className={styles.section}>

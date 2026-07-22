@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
+import { artisan } from '../data/backgrounds/artisan';
+import { criminal } from '../data/backgrounds/criminal';
 import { soldier } from '../data/backgrounds/soldier';
 import { exampleFighter } from '../data/characters/example-fighter';
 import { veraQuickblade } from '../data/characters/vera-quickblade';
 import { champion } from '../data/classes/fighter/champion';
 import { fighter } from '../data/classes/fighter/fighter';
 import { feats } from '../data/feats';
-import { weapons } from '../data/items';
+import { tools, weapons } from '../data/items';
 import { aasimar } from '../data/species/aasimar';
 import { elf, elfSubspecies, woodElf } from '../data/species/elf';
 import { human } from '../data/species/human';
@@ -75,6 +77,34 @@ describe('derive', () => {
 
   it('covers every skill', () => {
     expect(sheet.skills).toHaveLength(18);
+  });
+
+  describe('tool proficiencies', () => {
+    it('resolves a background tool grant to its ability and modifier', () => {
+      const withTools = derive(exampleFighter, { classes: [fighter], backgrounds: [soldier], tools });
+      expect(withTools.tools).toEqual([{ name: 'Gaming Set', ability: 'wis', modifier: 3 }]);
+    });
+
+    it('dedupes a character-chosen tool against the background grant', () => {
+      const vera = derive(
+        { ...veraQuickblade, toolProficiencies: ["Thieves' Tools"] },
+        { classes: [fighter], subclasses: [champion], backgrounds: [criminal], tools },
+      );
+      expect(vera.tools).toEqual([{ name: "Thieves' Tools", ability: 'dex', modifier: 5 }]);
+    });
+
+    it('lists an unresolved tool category by name only', () => {
+      const withArtisan = derive(
+        { ...exampleFighter, backgroundId: 'artisan' },
+        { classes: [fighter], backgrounds: [artisan], tools },
+      );
+      expect(withArtisan.tools).toEqual([{ name: "Artisan's Tools" }]);
+    });
+
+    it('omits tool proficiencies when no tool data resolves the name', () => {
+      const withTools = derive(exampleFighter, { classes: [fighter], backgrounds: [soldier] });
+      expect(withTools.tools).toEqual([{ name: 'Gaming Set' }]);
+    });
   });
 
   it('includes only features at or below the character level', () => {

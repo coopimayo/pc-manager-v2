@@ -185,12 +185,14 @@ function hitPointsFor(taken: ResolvedClass[], conModifier: number): number {
 }
 
 function sheetAbilities(effects: Effect[], level: number, proficiency: number): SheetAbility[] {
-  return effectsOfKind(effects, 'grantAbility').map(({ name, description, activation, uses }) => ({
-    name,
-    description,
-    activation,
-    uses: resolveUses(uses, level, proficiency),
-  }));
+  return effectsOfKind(effects, 'grantAbility')
+    .filter((effect) => (effect.atLevel ?? 1) <= level)
+    .map(({ name, description, activation, uses }) => ({
+      name,
+      description,
+      activation,
+      uses: resolveUses(uses, level, proficiency),
+    }));
 }
 
 function attackAbility(weapon: Weapon, modifiers: Record<Ability, number>): Ability {
@@ -357,6 +359,10 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
     sheetAbilities(feature.effects, classLevel, bonus),
   );
 
+  const traitEffects = [...(chosenSpecies?.traits ?? []), ...(chosenSubspecies?.traits ?? [])].flatMap(
+    (trait) => trait.effects,
+  );
+
   const sheetClasses: SheetClass[] = taken.map(({ definition, subclass, level: classLevel }) => ({
     name: definition.name,
     subclass: subclass?.name,
@@ -418,7 +424,11 @@ export function derive(character: Character, data: DeriveData = {}): Sheet {
       }),
     ),
     feats: characterFeats,
-    abilities: [...abilities, ...sheetAbilities(featEffects, level, bonus)],
+    abilities: [
+      ...abilities,
+      ...sheetAbilities(traitEffects, level, bonus),
+      ...sheetAbilities(featEffects, level, bonus),
+    ],
     attacks: attacksFor(character, weapons, featEffects, abilityModifiers, bonus),
     spells: sheetSpells,
     spellSlots,

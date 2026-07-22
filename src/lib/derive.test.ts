@@ -7,6 +7,7 @@ import { champion } from '../data/classes/fighter/champion';
 import { fighter } from '../data/classes/fighter/fighter';
 import { feats } from '../data/feats';
 import { weapons } from '../data/items';
+import { aasimar } from '../data/species/aasimar';
 import { elf, elfSubspecies, woodElf } from '../data/species/elf';
 import { human } from '../data/species/human';
 import { spells } from '../data/spells';
@@ -278,6 +279,37 @@ describe('derive', () => {
       expect(
         lucky.abilities.find((ability) => ability.name === 'Luck Points')?.uses?.count,
       ).toBe(3);
+    });
+  });
+
+  describe('trait abilities', () => {
+    const aasimarChar = { ...exampleFighter, speciesId: 'aasimar' };
+
+    it('surfaces a species trait ability with its activation and uses', () => {
+      const sheet = derive(aasimarChar, { classes: [fighter], species: [aasimar] });
+      expect(sheet.abilities.find((ability) => ability.name === 'Healing Hands')).toEqual({
+        name: 'Healing Hands',
+        description:
+          'Touch a creature and roll a number of d4s equal to your Proficiency Bonus; it regains Hit Points equal to the total.',
+        activation: { type: 'action' },
+        uses: { count: 1, recharge: [{ on: 'long-rest', amount: 'all' }] },
+      });
+    });
+
+    it('withholds a trait ability until the character reaches its level', () => {
+      const level1 = derive(aasimarChar, { classes: [fighter], species: [aasimar] });
+      expect(level1.abilities.some((ability) => ability.name === 'Celestial Revelation')).toBe(
+        false,
+      );
+
+      const level3 = derive(
+        { ...aasimarChar, classes: [{ classId: 'fighter', level: 3 }] },
+        { classes: [fighter], species: [aasimar] },
+      );
+      expect(level3.abilities.find((ability) => ability.name === 'Celestial Revelation')?.uses).toEqual({
+        count: 1,
+        recharge: [{ on: 'long-rest', amount: 'all' }],
+      });
     });
   });
 

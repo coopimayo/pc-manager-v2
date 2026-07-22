@@ -12,7 +12,7 @@ export type Effect =
       spells: { spellId: string; atLevel?: number }[];
       castingAbility: Ability | 'choice';
     }
-  | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses }
+  | { kind: 'grantAbility'; name: string; description: string; activation: Activation; uses?: Uses; atLevel?: number }
   | { kind: 'grantWeaponMastery'; count: number | LevelScaled }
   | { kind: 'grantProficiency'; skill: Skill }
   | { kind: 'skillProficiencyChoice'; count: number; from?: Skill[] }

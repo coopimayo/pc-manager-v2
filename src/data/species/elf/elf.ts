@@ -17,13 +17,6 @@ export const elf: Species = {
       effects: [],
     },
     {
-      id: 'elf-elven-lineage',
-      name: 'Elven Lineage',
-      description:
-        'You are part of a lineage that gives you supernatural abilities. Choose a lineage: Drow, High Elf, or Wood Elf. You gain that lineage\'s level 1 benefit, and you gain its further benefits when you reach character levels 3 and 5.',
-      effects: [],
-    },
-    {
       id: 'elf-fey-ancestry',
       name: 'Fey Ancestry',
       description:

@@ -10,7 +10,7 @@ import { fighter } from '../data/classes/fighter/fighter';
 import { feats } from '../data/feats';
 import { tools, weapons } from '../data/items';
 import { aasimar } from '../data/species/aasimar';
-import { elf, elfSubspecies, woodElf } from '../data/species/elf';
+import { drow, elf, elfSubspecies, woodElf } from '../data/species/elf';
 import { human } from '../data/species/human';
 import { spells } from '../data/spells';
 import type { Class } from '../types/class';
@@ -329,6 +329,22 @@ describe('derive', () => {
         { classes: [fighter], weapons, feats },
       );
       expect(blindFighter.senses).toEqual([{ name: 'Blindsight', range: 10 }]);
+    });
+
+    it('grants Darkvision from a species trait', () => {
+      const sheet = derive(
+        { ...exampleFighter, speciesId: 'aasimar' },
+        { classes: [fighter], species: [aasimar] },
+      );
+      expect(sheet.senses).toEqual([{ name: 'Darkvision', range: 60 }]);
+    });
+
+    it('takes the longer Darkvision range from a subspecies', () => {
+      const sheet = derive(
+        { ...veraQuickblade, subspeciesId: drow.id },
+        { classes: [fighter], species: [elf], subspecies: elfSubspecies },
+      );
+      expect(sheet.senses).toEqual([{ name: 'Darkvision', range: 120 }]);
     });
   });
 

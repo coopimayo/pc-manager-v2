@@ -37,7 +37,7 @@ export const aasimar: Species = {
       name: 'Darkvision',
       description:
         'You have Darkvision with a range of 60 feet. In dim light you see as if it were bright light, and in darkness you see as if it were dim light. You discern colors in that darkness only as shades of gray.',
-      effects: [],
+      effects: [{ kind: 'grantSense', sense: 'darkvision', range: 60 }],
     },
     {
       id: 'aasimar-healing-hands',

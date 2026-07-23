@@ -9,7 +9,7 @@ export const drow: Subspecies = {
       id: 'drow-superior-darkvision',
       name: 'Superior Darkvision',
       description: 'The range of your Darkvision increases to 120 feet.',
-      effects: [],
+      effects: [{ kind: 'grantSense', sense: 'darkvision', range: 120 }],
     },
     {
       id: 'drow-magic',

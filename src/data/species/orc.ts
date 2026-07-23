@@ -30,7 +30,7 @@ export const orc: Species = {
       name: 'Darkvision',
       description:
         'You have Darkvision with a range of 120 feet. In dim light you see as if it were bright light, and in darkness you see as if it were dim light. You discern colors in that darkness only as shades of gray.',
-      effects: [],
+      effects: [{ kind: 'grantSense', sense: 'darkvision', range: 120 }],
     },
     {
       id: 'orc-relentless-endurance',
